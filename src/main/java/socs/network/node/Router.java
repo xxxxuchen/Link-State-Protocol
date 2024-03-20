@@ -1,23 +1,46 @@
 package socs.network.node;
 
+import socs.network.message.HelloHandler;
+import socs.network.message.LSAUpdateHandler;
+import socs.network.message.MessageHandler;
+import socs.network.message.SOSPFPacket;
+import socs.network.sockets.SocketClient;
+import socs.network.sockets.SocketServer;
 import socs.network.util.Configuration;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 
-public class Router {
+public class Router extends AbstractRouter {
 
   protected LinkStateDatabase lsd;
 
-  RouterDescription rd = new RouterDescription();
+  private RouterDescription rd;
 
   //assuming that all routers are with 4 ports
-  Link[] ports = new Link[4];
+  private Link[] ports = new Link[4];
+
+  // map message type to message handler
+  private MessageHandler[] handlers = new MessageHandler[2];
+
 
   public Router(Configuration config) {
-    rd.simulatedIPAddress = config.getString("socs.network.router.ip");
+    String simulatedIP = config.getString("socs.network.router.ip");
+    int processPort = config.getInt("socs.network.router.port");
+    rd = new RouterDescription("127.0.0.1", processPort, simulatedIP);
     lsd = new LinkStateDatabase(rd);
+    registerHandler();
+    listenPackets();
+  }
+
+  private void registerHandler() {
+    // register hello message handler
+    handlers[0] = new HelloHandler(this, lsd);
+
+    // register LSAUpdate message handler
+    handlers[1] = new LSAUpdateHandler(this, lsd);
   }
 
   /**
@@ -49,19 +72,44 @@ public class Router {
    */
   private void processAttach(String processIP, short processPort,
                              String simulatedIP) {
+    if (simulatedIP.equals(rd.getSimulatedIP())) {
+      System.out.println("Cannot attach to itself");
+      return;
+    }
+
+    // check if the link already exists
+    for (Link link : ports) {
+      if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
+        System.out.println("Link already exists");
+        return;
+      }
+    }
+
+    // send the HELLO packet to the remote router
+
+
+    // if success then create a new link
+    RouterDescription attachedRouter = new RouterDescription(processIP, processPort, simulatedIP);
+    Link link = new Link(rd, attachedRouter);
+    for (int i = 0; i < ports.length; i++) {
+      if (ports[i] == null) {
+        ports[i] = link;
+        break;
+      }
+    }
 
   }
 
 
   /**
-   * process request from the remote router. 
-   * For example: when router2 tries to attach router1. Router1 can decide whether it will accept this request. 
+   * process request from the remote router.
+   * For example: when router2 tries to attach router1. Router1 can decide whether it will accept this request.
    * The intuition is that if router2 is an unknown/anomaly router, it is always safe to reject the attached
    * request from router2.
    */
-  private void requestHandler() {
-
-  }
+//  private void requestHandler() {
+//
+//  }
 
   /**
    * broadcast Hello to neighbors
@@ -113,13 +161,13 @@ public class Router {
         } else if (command.startsWith("attach ")) {
           String[] cmdLine = command.split(" ");
           processAttach(cmdLine[1], Short.parseShort(cmdLine[2]),
-                  cmdLine[3] );
+            cmdLine[3]);
         } else if (command.equals("start")) {
           processStart();
         } else if (command.equals("connect ")) {
           String[] cmdLine = command.split(" ");
           processConnect(cmdLine[1], Short.parseShort(cmdLine[2]),
-                  cmdLine[3]);
+            cmdLine[3]);
         } else if (command.equals("neighbors")) {
           //output neighbors
           processNeighbors();
@@ -137,4 +185,26 @@ public class Router {
     }
   }
 
+  @Override
+  public void listenPackets() {
+    Thread listener = new Thread(() -> {
+      SocketServer serverSocket = new SocketServer(rd.getProcessPort());
+      while (true) {
+        SocketClient clientSocket = serverSocket.accept();
+        // create a new thread to handle the incoming message
+        Thread channelThread = new Thread(() -> {
+          while (true) {
+            SOSPFPacket packet = clientSocket.receive();
+            if (packet != null) {
+              // call the corresponding handler callback
+              handlers[packet.sospfType].handleMessage(packet);
+            }
+          }
+        });
+        channelThread.start();
+      }
+    });
+    listener.start();
+
+  }
 }

@@ -29,10 +29,10 @@ public class LinkStateDatabase {
   //initialize the linkstate database by adding an entry about the router itself
   private LSA initLinkStateDatabase() {
     LSA lsa = new LSA();
-    lsa.linkStateID = rd.simulatedIPAddress;
+    lsa.linkStateID = rd.getSimulatedIP();
     lsa.lsaSeqNumber = Integer.MIN_VALUE;
     LinkDescription ld = new LinkDescription();
-    ld.linkID = rd.simulatedIPAddress;
+    ld.linkID = rd.getSimulatedIP();
     ld.portNum = -1;
     lsa.links.add(ld);
     return lsa;
@@ -41,7 +41,7 @@ public class LinkStateDatabase {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    for (LSA lsa: _store.values()) {
+    for (LSA lsa : _store.values()) {
       sb.append(lsa.linkStateID).append("(" + lsa.lsaSeqNumber + ")").append(":\t");
       for (LinkDescription ld : lsa.links) {
         sb.append(ld.linkID).append(",").append(ld.portNum).append("\t");

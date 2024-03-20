@@ -5,9 +5,10 @@ import socs.network.message.SOSPFPacket;
 import java.io.*;
 import java.net.Socket;
 
+
 public class SocketClient {
   private Socket socket;
-  private BufferedReader in;
+  private ObjectInputStream in;
   private ObjectOutputStream out;
 
 
@@ -38,6 +39,18 @@ public class SocketClient {
     }
   }
 
+  public SOSPFPacket receive() {
+    try {
+      Object obj = in.readObject();
+      if (obj instanceof SOSPFPacket) {
+        return (SOSPFPacket) obj;
+      }
+    } catch (IOException | ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public void close() {
     try {
       in.close();
@@ -51,7 +64,7 @@ public class SocketClient {
 
   private void initStream() throws IOException {
     out = new ObjectOutputStream(socket.getOutputStream());
-    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    in = new ObjectInputStream(socket.getInputStream());
   }
 
 }
