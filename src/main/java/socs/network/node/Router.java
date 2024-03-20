@@ -56,7 +56,8 @@ public class Router {
   /**
    * process request from the remote router. 
    * For example: when router2 tries to attach router1. Router1 can decide whether it will accept this request. 
-   * The intuition is that if router2 is an unknown/anomaly router, it is always safe to reject the attached request from router2.
+   * The intuition is that if router2 is an unknown/anomaly router, it is always safe to reject the attached
+   * request from router2.
    */
   private void requestHandler() {
 
