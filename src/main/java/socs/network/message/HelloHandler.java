@@ -1,15 +1,63 @@
 package socs.network.message;
 
-import socs.network.node.LinkStateDatabase;
-import socs.network.node.Node;
+import socs.network.node.*;
+import socs.network.util.UserInputUtil;
 
-public class HelloHandler implements MessageHandler {
+/**
+ * TODO: Thread Safe
+ */
+public class HelloHandler extends AbstractMsgHandler {
 
   public HelloHandler(Node node, LinkStateDatabase lsd) {
-    // TODO: Implement this
+    super(node, lsd);
   }
 
+  @Override
   public void handleMessage(SOSPFPacket packet) {
-    // TODO: Implement this
+    RouterDescription neighbor = router.getNeighborFromLink(packet.neighborID);
+
+    // attach request
+    if (neighbor == null) {
+      // attach request is sent from the originated neighbor
+      if (packet.srcIP.equals(packet.neighborID)) {
+        super.handleMessage(packet);
+        System.out.print("Do you accept this request?(Y/N)：");
+        char yn = UserInputUtil.readConfirmSelection();
+        RouterDescription originatedRouter = new RouterDescription("127.0.0.1", packet.srcProcessPort, packet.srcIP);
+        if (yn == 'Y') {
+          System.out.println("You have accepted the request.");
+          // add the link
+          Link link = new Link(router.getRouterDescription(), originatedRouter);
+          router.addLink(link);
+          // change the neighbor id field to the router's simulated IP
+          packet.neighborID = router.getRouterDescription().getSimulatedIP();
+          // change the source port field to the router's process port
+          packet.srcProcessPort = router.getRouterDescription().getProcessPort();
+          // send the hello packet back to the neighbor
+          router.sendPacket(packet, originatedRouter);
+        } else {
+          System.out.println("You have rejected the request.");
+          // set the neighbor id field to -1
+          packet.neighborID = "-1";
+          router.sendPacket(packet, originatedRouter);
+        }
+      } else {
+        // response of attach request from the target neighbor
+        if (packet.neighborID.equals("-1")) {
+          System.out.println("The request has been rejected.");
+        } else {
+          System.out.println("The request has been accepted.");
+          RouterDescription targetRouter = new RouterDescription("127.0.0.1", packet.srcProcessPort, packet.neighborID);
+          // add the link
+          Link link = new Link(router.getRouterDescription(), targetRouter);
+          router.addLink(link);
+        }
+
+      }
+    }
+
+    // TODO: Start Request
+
   }
+
 }

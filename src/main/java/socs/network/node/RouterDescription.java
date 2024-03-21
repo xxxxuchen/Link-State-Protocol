@@ -19,6 +19,14 @@ public class RouterDescription {
     this.status = RouterStatus.INIT;
   }
 
+  // copy constructor
+  public RouterDescription(RouterDescription other) {
+    this.processIPAddress = other.processIPAddress;
+    this.processPortNumber = other.processPortNumber;
+    this.simulatedIPAddress = other.simulatedIPAddress;
+    this.status = other.status;
+  }
+
   public String getProcessIP() {
     return processIPAddress;
   }
@@ -48,7 +56,8 @@ public class RouterDescription {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     RouterDescription that = (RouterDescription) o;
-    return processPortNumber == that.processPortNumber && Objects.equals(processIPAddress, that.processIPAddress) && Objects.equals(simulatedIPAddress, that.simulatedIPAddress) && status == that.status;
+    return processPortNumber == that.processPortNumber && Objects.equals(processIPAddress, that.processIPAddress)
+      && Objects.equals(simulatedIPAddress, that.simulatedIPAddress) && status == that.status;
   }
 
   @Override

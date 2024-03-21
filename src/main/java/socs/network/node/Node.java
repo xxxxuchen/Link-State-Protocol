@@ -1,11 +1,23 @@
 package socs.network.node;
 
 import socs.network.message.SOSPFPacket;
+import socs.network.sockets.SocketClient;
 
 public interface Node {
 
-  public void listenPackets();
+  RouterDescription[] getNeighbors();
 
-  public void sendPackets(SOSPFPacket packet, RouterDescription dst);
+  public RouterDescription getNeighborFromLink(String simulatedIP);
 
+  public void addLink(Link link);
+
+  public RouterDescription getRouterDescription();
+
+  default void sendPacket(SOSPFPacket packet, RouterDescription dst) {
+    String hostIP = dst.getProcessIP();
+    int port = dst.getProcessPort();
+    SocketClient clientSocket = new SocketClient(hostIP, port);
+    clientSocket.send(packet);
+    clientSocket.close();
+  }
 }

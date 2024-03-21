@@ -1,19 +1,15 @@
 package socs.network.node;
 
-import socs.network.message.HelloHandler;
-import socs.network.message.LSAUpdateHandler;
-import socs.network.message.MessageHandler;
-import socs.network.message.SOSPFPacket;
+import socs.network.message.*;
 import socs.network.sockets.SocketClient;
 import socs.network.sockets.SocketServer;
 import socs.network.util.Configuration;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 
-public class Router extends AbstractRouter {
+public class Router implements Node {
 
   protected LinkStateDatabase lsd;
 
@@ -86,17 +82,9 @@ public class Router extends AbstractRouter {
     }
 
     // send the HELLO packet to the remote router
-
-
-    // if success then create a new link
     RouterDescription attachedRouter = new RouterDescription(processIP, processPort, simulatedIP);
-    Link link = new Link(rd, attachedRouter);
-    for (int i = 0; i < ports.length; i++) {
-      if (ports[i] == null) {
-        ports[i] = link;
-        break;
-      }
-    }
+    SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter);
+    sendPacket(helloPacket, attachedRouter);
 
   }
 
@@ -185,8 +173,39 @@ public class Router extends AbstractRouter {
     }
   }
 
-  @Override
-  public void listenPackets() {
+  public RouterDescription[] getNeighbors() {
+    RouterDescription[] neighbors = new RouterDescription[ports.length];
+    for (int i = 0; i < ports.length; i++) {
+      if (ports[i] != null) {
+        neighbors[i] = new RouterDescription(ports[i].router2);
+      }
+    }
+    return neighbors;
+  }
+
+  public RouterDescription getNeighborFromLink(String simulatedIP) {
+    for (Link link : ports) {
+      if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
+        return new RouterDescription(link.router2);
+      }
+    }
+    return null;
+  }
+
+  public RouterDescription getRouterDescription() {
+    return new RouterDescription(rd);
+  }
+
+  public void addLink(Link link) {
+    for (int i = 0; i < ports.length; i++) {
+      if (ports[i] == null) {
+        ports[i] = link;
+        break;
+      }
+    }
+  }
+
+  private void listenPackets() {
     Thread listener = new Thread(() -> {
       SocketServer serverSocket = new SocketServer(rd.getProcessPort());
       while (true) {
