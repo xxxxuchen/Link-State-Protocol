@@ -1,9 +1,12 @@
 package socs.network.node;
 
+/**
+ * Immutable class
+ */
 public class Link {
 
-  RouterDescription router1;
-  RouterDescription router2;
+  final RouterDescription router1;
+  final RouterDescription router2;
 
   public Link(RouterDescription r1, RouterDescription r2) {
     router1 = r1;

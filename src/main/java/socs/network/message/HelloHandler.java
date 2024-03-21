@@ -21,18 +21,18 @@ public class HelloHandler extends AbstractMsgHandler {
       // attach request is sent from the originated neighbor
       if (packet.srcIP.equals(packet.neighborID)) {
         super.handleMessage(packet);
+        RouterDescription originatedRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort, packet.srcIP);
         System.out.print("Do you accept this request?(Y/N)：");
         char yn = UserInputUtil.readConfirmSelection();
-        RouterDescription originatedRouter = new RouterDescription("127.0.0.1", packet.srcProcessPort, packet.srcIP);
         if (yn == 'Y') {
           System.out.println("You have accepted the request.");
           // add the link
-          Link link = new Link(router.getRouterDescription(), originatedRouter);
+          Link link = new Link(router.getDescription(), originatedRouter);
           router.addLink(link);
           // change the neighbor id field to the router's simulated IP
-          packet.neighborID = router.getRouterDescription().getSimulatedIP();
+          packet.neighborID = router.getDescription().getSimulatedIP();
           // change the source port field to the router's process port
-          packet.srcProcessPort = router.getRouterDescription().getProcessPort();
+          packet.srcProcessPort = router.getDescription().getProcessPort();
           // send the hello packet back to the neighbor
           router.sendPacket(packet, originatedRouter);
         } else {
@@ -47,9 +47,9 @@ public class HelloHandler extends AbstractMsgHandler {
           System.out.println("The request has been rejected.");
         } else {
           System.out.println("The request has been accepted.");
-          RouterDescription targetRouter = new RouterDescription("127.0.0.1", packet.srcProcessPort, packet.neighborID);
+          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort, packet.neighborID);
           // add the link
-          Link link = new Link(router.getRouterDescription(), targetRouter);
+          Link link = new Link(router.getDescription(), targetRouter);
           router.addLink(link);
         }
 

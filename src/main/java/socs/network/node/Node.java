@@ -11,7 +11,9 @@ public interface Node {
 
   public void addLink(Link link);
 
-  public RouterDescription getRouterDescription();
+  public void setStatus(RouterStatus status);
+
+  public RouterDescription getDescription();
 
   default void sendPacket(SOSPFPacket packet, RouterDescription dst) {
     String hostIP = dst.getProcessIP();

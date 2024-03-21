@@ -15,7 +15,7 @@ public class SocketServer {
     }
   }
 
-  public SocketClient accept() {
+  public synchronized SocketClient accept() {
     try {
       Socket socket = serverSocket.accept();
       return new SocketClient(socket);

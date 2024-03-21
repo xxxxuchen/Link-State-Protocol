@@ -13,7 +13,7 @@ public class Router implements Node {
 
   protected LinkStateDatabase lsd;
 
-  private RouterDescription rd;
+  private volatile RouterDescription rd;
 
   //assuming that all routers are with 4 ports
   private Link[] ports = new Link[4];
@@ -25,7 +25,7 @@ public class Router implements Node {
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");
     int processPort = config.getInt("socs.network.router.port");
-    rd = new RouterDescription("127.0.0.1", processPort, simulatedIP);
+    rd = RouterDescription.getInstance("127.0.0.1", processPort, simulatedIP);
     lsd = new LinkStateDatabase(rd);
     registerHandler();
     listenPackets();
@@ -82,7 +82,8 @@ public class Router implements Node {
     }
 
     // send the HELLO packet to the remote router
-    RouterDescription attachedRouter = new RouterDescription(processIP, processPort, simulatedIP);
+    RouterDescription attachedRouter = RouterDescription.getInstance(processIP, processPort, simulatedIP);
+
     SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter);
     sendPacket(helloPacket, attachedRouter);
 
@@ -177,7 +178,7 @@ public class Router implements Node {
     RouterDescription[] neighbors = new RouterDescription[ports.length];
     for (int i = 0; i < ports.length; i++) {
       if (ports[i] != null) {
-        neighbors[i] = new RouterDescription(ports[i].router2);
+        neighbors[i] = ports[i].router2;
       }
     }
     return neighbors;
@@ -186,14 +187,18 @@ public class Router implements Node {
   public RouterDescription getNeighborFromLink(String simulatedIP) {
     for (Link link : ports) {
       if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
-        return new RouterDescription(link.router2);
+        return link.router2;
       }
     }
     return null;
   }
 
-  public RouterDescription getRouterDescription() {
-    return new RouterDescription(rd);
+  public RouterDescription getDescription() {
+    return rd;
+  }
+
+  public void setStatus(RouterStatus status) {
+    rd = rd.changedStatus(status);
   }
 
   public void addLink(Link link) {
