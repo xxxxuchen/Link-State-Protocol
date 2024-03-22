@@ -8,13 +8,15 @@ import java.util.HashMap;
 public class LinkStateDatabase {
 
   //linkID => LSAInstance
-  HashMap<String, LSA> _store = new HashMap<String, LSA>();
+  private final HashMap<String, LSA> _store = new HashMap<String, LSA>();
 
-  private RouterDescription rd = null;
+  private final Node router;
 
-  public LinkStateDatabase(RouterDescription routerDescription) {
-    rd = routerDescription;
-    LSA l = initLinkStateDatabase();
+
+  public LinkStateDatabase(Node rt) {
+    this.router = rt;
+    RouterDescription rd = router.getDescription();
+    LSA l = initLinkStateDatabase(rd);
     _store.put(l.linkStateID, l);
   }
 
@@ -27,13 +29,9 @@ public class LinkStateDatabase {
   }
 
   //initialize the linkstate database by adding an entry about the router itself
-  private LSA initLinkStateDatabase() {
-    LSA lsa = new LSA();
-    lsa.linkStateID = rd.getSimulatedIP();
-    lsa.lsaSeqNumber = Integer.MIN_VALUE;
-    LinkDescription ld = new LinkDescription();
-    ld.linkID = rd.getSimulatedIP();
-    ld.portNum = -1;
+  private LSA initLinkStateDatabase(RouterDescription rd) {
+    LSA lsa = new LSA(rd.getSimulatedIP());
+    LinkDescription ld = new LinkDescription(rd.getSimulatedIP(), -1);
     lsa.links.add(ld);
     return lsa;
   }

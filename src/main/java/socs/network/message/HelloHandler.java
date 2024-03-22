@@ -22,7 +22,7 @@ public class HelloHandler extends AbstractMsgHandler {
   public void handleMessage(SOSPFPacket pkt) {
     this.packet = pkt;
     this.originatedRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort, packet.srcIP);
-    RouterDescription neighbor = router.getNeighborFromLink(packet.neighborID);
+    RouterDescription neighbor = router.getAttachedNeighbor(packet.neighborID);
 
     // attach request
     if (neighbor == null) {

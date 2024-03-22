@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
- * A map to store the port number of a router given its Simulated IP address.
+ * A map to store the process port number of a router given its Simulated IP address.
  * It uses a ConcurrentHashMap, which is thread safe.
  */
 public class IP2PortMap {

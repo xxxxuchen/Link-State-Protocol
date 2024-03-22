@@ -11,6 +11,10 @@ public class LSA implements Serializable {
 
   public LinkedList<LinkDescription> links = new LinkedList<LinkDescription>();
 
+  public LSA(String linkStateID) {
+    this.linkStateID = linkStateID;
+  }
+
   @Override
   public String toString() {
     StringBuffer sb = new StringBuffer();

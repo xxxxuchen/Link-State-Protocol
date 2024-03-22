@@ -5,9 +5,9 @@ import socs.network.sockets.SocketClient;
 
 public interface Node {
 
-  RouterDescription[] getNeighbors();
+  RouterDescription[] getAttachedNeighbors();
 
-  public RouterDescription getNeighborFromLink(String simulatedIP);
+  public RouterDescription getAttachedNeighbor(String simulatedIP);
 
   public void addLink(Link link);
 

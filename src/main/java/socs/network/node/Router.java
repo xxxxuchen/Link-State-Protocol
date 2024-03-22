@@ -17,10 +17,14 @@ public class Router implements Node {
   private volatile RouterDescription rd;
 
   //assuming that all routers are with 4 ports
-  private Link[] ports = new Link[4];
+  private Link[] ports = new Link[4]; // store attached neighbors
+
+  private RouterDescription[] connectedNeighbors = new RouterDescription[4];
 
   // map message type to message handler, 0 for helloHandler, 1 for LSAUpdateHandler
   private MessageHandler[] handlers = new MessageHandler[2];
+
+  private final Object portsLock = new Object();
 
 
   public Router(Configuration config) {
@@ -28,18 +32,54 @@ public class Router implements Node {
     int processPort = config.getInt("socs.network.router.port");
     IP2PortMap.add(simulatedIP, processPort);
     rd = RouterDescription.getInstance("127.0.0.1", processPort, simulatedIP);
-    lsd = new LinkStateDatabase(rd);
+    lsd = new LinkStateDatabase((Node) rd);
     registerHandler();
     listenPackets();
   }
 
-  private void registerHandler() {
-    // register hello message handler
-    handlers[0] = new HelloHandler(this, lsd);
-
-    // register LSAUpdate message handler
-    handlers[1] = new LSAUpdateHandler(this, lsd);
+  public RouterDescription[] getAttachedNeighbors() {
+    synchronized (portsLock) {
+      RouterDescription[] neighbors = new RouterDescription[ports.length];
+      for (int i = 0; i < ports.length; i++) {
+        if (ports[i] != null) {
+          neighbors[i] = ports[i].router2;
+        }
+      }
+      return neighbors;
+    }
   }
+
+  public RouterDescription getAttachedNeighbor(String simulatedIP) {
+    synchronized (portsLock) {
+      for (Link link : ports) {
+        if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
+          return link.router2;
+        }
+      }
+      return null;
+    }
+  }
+
+  public RouterDescription getDescription() {
+    return rd;
+  }
+
+  public void setStatus(RouterStatus status) {
+    rd = rd.changedStatus(status);
+  }
+
+  public void addLink(Link link) {
+    synchronized (portsLock) {
+      for (int i = 0; i < ports.length; i++) {
+        if (ports[i] == null) {
+          ports[i] = link;
+          connectedNeighbors[i] = link.router2;
+          break;
+        }
+      }
+    }
+  }
+
 
   /**
    * output the shortest path to the given destination ip
@@ -75,28 +115,36 @@ public class Router implements Node {
       return;
     }
 
-    // check if the link already exists
-    for (Link link : ports) {
-      if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
-        System.out.println("Link already exists");
-        return;
+    synchronized (portsLock) {
+      // check if the link already exists
+      for (Link link : ports) {
+        if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
+          System.out.println("Link already exists");
+          return;
+        }
       }
     }
 
     // send the HELLO packet to the remote router
     RouterDescription attachedRouter = RouterDescription.getInstance(processIP, processPort, simulatedIP);
-    SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter);
-    // set the neighbor id field to destination router's simulated IP
-    helloPacket.neighborID = simulatedIP;
+    SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter, simulatedIP);
+
     sendPacket(helloPacket, attachedRouter);
   }
 
 
   /**
-   * broadcast Hello to neighbors
+   * broadcast Hello to all attached neighbors
    */
   private void processStart() {
-
+    synchronized (portsLock) {
+      for (Link link : ports) {
+        if (link != null) {
+          SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, link.router2, link.router2.getSimulatedIP());
+          sendPacket(helloPacket, link.router2);
+        }
+      }
+    }
   }
 
   /**
@@ -121,6 +169,38 @@ public class Router implements Node {
    * disconnect with all neighbors and quit the program
    */
   private void processQuit() {
+
+  }
+
+
+  private void registerHandler() {
+    // register hello message handler
+    handlers[0] = new HelloHandler(this, lsd);
+
+    // register LSAUpdate message handler
+    handlers[1] = new LSAUpdateHandler(this, lsd);
+  }
+
+  // TODO: Thread Termination
+  private void listenPackets() {
+    Thread listener = new Thread(() -> {
+      SocketServer serverSocket = new SocketServer(rd.getProcessPort());
+      while (true) {
+        SocketClient clientSocket = serverSocket.accept();
+        // create a new thread to handle the incoming message
+        Thread channel = new Thread(() -> {
+          while (true) {
+            SOSPFPacket packet = clientSocket.receive();
+            if (packet != null) {
+              // call the corresponding handler callback
+              handlers[packet.sospfType].handleMessage(packet);
+            }
+          }
+        });
+        channel.start();
+      }
+    });
+    listener.start();
 
   }
 
@@ -180,61 +260,5 @@ public class Router implements Node {
     }
   }
 
-  public RouterDescription[] getNeighbors() {
-    RouterDescription[] neighbors = new RouterDescription[ports.length];
-    for (int i = 0; i < ports.length; i++) {
-      if (ports[i] != null) {
-        neighbors[i] = ports[i].router2;
-      }
-    }
-    return neighbors;
-  }
 
-  public RouterDescription getNeighborFromLink(String simulatedIP) {
-    for (Link link : ports) {
-      if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
-        return link.router2;
-      }
-    }
-    return null;
-  }
-
-  public RouterDescription getDescription() {
-    return rd;
-  }
-
-  public void setStatus(RouterStatus status) {
-    rd = rd.changedStatus(status);
-  }
-
-  public void addLink(Link link) {
-    for (int i = 0; i < ports.length; i++) {
-      if (ports[i] == null) {
-        ports[i] = link;
-        break;
-      }
-    }
-  }
-
-  private void listenPackets() {
-    Thread listener = new Thread(() -> {
-      SocketServer serverSocket = new SocketServer(rd.getProcessPort());
-      while (true) {
-        SocketClient clientSocket = serverSocket.accept();
-        // create a new thread to handle the incoming message
-        Thread channelThread = new Thread(() -> {
-          while (true) {
-            SOSPFPacket packet = clientSocket.receive();
-            if (packet != null) {
-              // call the corresponding handler callback
-              handlers[packet.sospfType].handleMessage(packet);
-            }
-          }
-        });
-        channelThread.start();
-      }
-    });
-    listener.start();
-
-  }
 }

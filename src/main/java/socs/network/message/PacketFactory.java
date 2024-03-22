@@ -6,8 +6,9 @@ public class PacketFactory {
   public static final short HELLO = 0;
   public static final short LSAUPDATE = 1;
 
-  public static SOSPFPacket createHelloPacket(RouterDescription src, RouterDescription dst) {
+  public static SOSPFPacket createHelloPacket(RouterDescription src, RouterDescription dst, String neighborIP) {
     SOSPFPacket packet = initPacket(src, dst, HELLO);
+    packet.neighborID = neighborIP;
     return packet;
   }
 
