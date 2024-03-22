@@ -18,7 +18,7 @@ public class Router implements Node {
   //assuming that all routers are with 4 ports
   private Link[] ports = new Link[4];
 
-  // map message type to message handler
+  // map message type to message handler, 0 for helloHandler, 1 for LSAUpdateHandler
   private MessageHandler[] handlers = new MessageHandler[2];
 
 
@@ -83,10 +83,8 @@ public class Router implements Node {
 
     // send the HELLO packet to the remote router
     RouterDescription attachedRouter = RouterDescription.getInstance(processIP, processPort, simulatedIP);
-
     SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter);
     sendPacket(helloPacket, attachedRouter);
-
   }
 
 
@@ -152,6 +150,7 @@ public class Router implements Node {
           processAttach(cmdLine[1], Short.parseShort(cmdLine[2]),
             cmdLine[3]);
         } else if (command.equals("start")) {
+          System.out.println("Starting the router");
           processStart();
         } else if (command.equals("connect ")) {
           String[] cmdLine = command.split(" ");
@@ -160,6 +159,12 @@ public class Router implements Node {
         } else if (command.equals("neighbors")) {
           //output neighbors
           processNeighbors();
+        } else if (command.equals("Y") || command.equals("y")) {
+          HelloHandler helloHandler = (HelloHandler) handlers[0];
+          helloHandler.handleAccept();
+        } else if (command.equals("N") || command.equals("n")) {
+          HelloHandler helloHandler = (HelloHandler) handlers[0];
+          helloHandler.handleReject();
         } else {
           //invalid command
           break;
@@ -169,7 +174,8 @@ public class Router implements Node {
       }
       isReader.close();
       br.close();
-    } catch (Exception e) {
+    } catch (
+      Exception e) {
       e.printStackTrace();
     }
   }

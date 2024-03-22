@@ -39,6 +39,9 @@ public class SocketClient {
     }
   }
 
+  /**
+   * @return null if the packet is not an instance of SOSPFPacket
+   */
   public SOSPFPacket receive() {
     try {
       Object obj = in.readObject();
@@ -46,7 +49,7 @@ public class SocketClient {
         return (SOSPFPacket) obj;
       }
     } catch (IOException | ClassNotFoundException e) {
-      e.printStackTrace();
+      // ignore
     }
     return null;
   }

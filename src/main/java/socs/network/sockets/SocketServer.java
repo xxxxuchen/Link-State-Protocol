@@ -20,16 +20,16 @@ public class SocketServer {
       Socket socket = serverSocket.accept();
       return new SocketClient(socket);
     } catch (Exception e) {
-      e.printStackTrace();
+      //ignore
     }
     return null;
   }
 
-  public int getLocalPort() {
+  public synchronized int getLocalPort() {
     return serverSocket.getLocalPort();
   }
 
-  public void close() {
+  public synchronized void close() {
     try {
       serverSocket.close();
     } catch (Exception e) {

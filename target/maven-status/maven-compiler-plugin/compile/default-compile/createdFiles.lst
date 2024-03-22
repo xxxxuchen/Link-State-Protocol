@@ -1,0 +1,8 @@
+socs/network/sockets/SocketClient.class
+socs/network/message/MessageHandler.class
+socs/network/sockets/SocketServer.class
+socs/network/node/Node.class
+socs/network/message/PacketFactory.class
+socs/network/message/HelloHandler.class
+socs/network/message/LSAUpdateHandler.class
+socs/network/message/AbstractMsgHandler.class
