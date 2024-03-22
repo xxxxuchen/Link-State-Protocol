@@ -8,7 +8,6 @@ public class PacketFactory {
 
   public static SOSPFPacket createHelloPacket(RouterDescription src, RouterDescription dst) {
     SOSPFPacket packet = initPacket(src, dst, HELLO);
-    packet.neighborID = src.getSimulatedIP();
     return packet;
   }
 

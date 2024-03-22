@@ -11,16 +11,12 @@ public class SOSPFPacket implements Serializable {
   public int srcProcessPort;
 
   //simulated IP address
-  public String srcIP;
+  public String srcIP; // the originator of this packet
   public String dstIP;
 
   //common header
   public short sospfType; //0 - HELLO, 1 - LinkState Update
-  public String routerID;
-
-  //used by HELLO message to identify the sender of the message
-  //e.g. when router A sends HELLO to its neighbor, it has to fill this field with its own
-  //simulated IP address
+  public String routerID; // sender of the packet
   public String neighborID; //neighbor's simulated IP address
 
   //used by LSAUPDATE

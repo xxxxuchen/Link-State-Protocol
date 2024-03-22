@@ -2,6 +2,7 @@ package socs.network.message;
 
 import socs.network.node.*;
 import socs.network.util.Console;
+import socs.network.util.IP2PortMap;
 
 
 /**
@@ -9,6 +10,7 @@ import socs.network.util.Console;
  */
 public class HelloHandler extends AbstractMsgHandler {
 
+  // the initial router that sends the hello packet
   private RouterDescription originatedRouter;
   private SOSPFPacket packet;
 
@@ -25,7 +27,7 @@ public class HelloHandler extends AbstractMsgHandler {
     // attach request
     if (neighbor == null) {
       // attach request is sent from the originated neighbor
-      if (packet.srcIP.equals(packet.neighborID)) {
+      if (packet.srcIP.equals(packet.routerID)) {
         super.handleMessage(packet);
         System.out.print("Do you accept this request?(Y/N)：");
       } else {
@@ -34,7 +36,8 @@ public class HelloHandler extends AbstractMsgHandler {
           Console.log("The request has been rejected.");
         } else {
           Console.log("The request has been accepted.");
-          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort, packet.neighborID);
+          int targetPort = IP2PortMap.get(packet.routerID);
+          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", targetPort, packet.routerID);
           // add the link
           Link link = new Link(router.getDescription(), targetRouter);
           router.addLink(link);
@@ -52,17 +55,16 @@ public class HelloHandler extends AbstractMsgHandler {
     // add the link
     Link link = new Link(router.getDescription(), originatedRouter);
     router.addLink(link);
-    // change the neighbor id field to the router's simulated IP
-    packet.neighborID = router.getDescription().getSimulatedIP();
-    // change the source port field to the router's process port
-    packet.srcProcessPort = router.getDescription().getProcessPort();
+    // changer the router id to its own simulated IP
+    // to indicate this is a reply packet
+    packet.routerID = router.getDescription().getSimulatedIP();
     // send the hello packet back to the neighbor
     router.sendPacket(packet, originatedRouter);
   }
 
   public void handleReject() {
     Console.log("You have rejected the request.");
-    // set the neighbor id field to -1
+    // set the neighbor id field to -1, indicating the request is rejected
     packet.neighborID = "-1";
     router.sendPacket(packet, originatedRouter);
   }

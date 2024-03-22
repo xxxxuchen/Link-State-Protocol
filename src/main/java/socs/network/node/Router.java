@@ -4,6 +4,7 @@ import socs.network.message.*;
 import socs.network.sockets.SocketClient;
 import socs.network.sockets.SocketServer;
 import socs.network.util.Configuration;
+import socs.network.util.IP2PortMap;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -25,6 +26,7 @@ public class Router implements Node {
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");
     int processPort = config.getInt("socs.network.router.port");
+    IP2PortMap.add(simulatedIP, processPort);
     rd = RouterDescription.getInstance("127.0.0.1", processPort, simulatedIP);
     lsd = new LinkStateDatabase(rd);
     registerHandler();
@@ -84,19 +86,11 @@ public class Router implements Node {
     // send the HELLO packet to the remote router
     RouterDescription attachedRouter = RouterDescription.getInstance(processIP, processPort, simulatedIP);
     SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter);
+    // set the neighbor id field to destination router's simulated IP
+    helloPacket.neighborID = simulatedIP;
     sendPacket(helloPacket, attachedRouter);
   }
 
-
-  /**
-   * process request from the remote router.
-   * For example: when router2 tries to attach router1. Router1 can decide whether it will accept this request.
-   * The intuition is that if router2 is an unknown/anomaly router, it is always safe to reject the attached
-   * request from router2.
-   */
-//  private void requestHandler() {
-//
-//  }
 
   /**
    * broadcast Hello to neighbors
