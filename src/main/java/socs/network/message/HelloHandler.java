@@ -1,7 +1,7 @@
 package socs.network.message;
 
 import socs.network.node.*;
-
+import socs.network.util.Console;
 
 
 /**
@@ -31,9 +31,9 @@ public class HelloHandler extends AbstractMsgHandler {
       } else {
         // response of attach request from the target neighbor
         if (packet.neighborID.equals("-1")) {
-          System.out.println("The request has been rejected.");
+          Console.log("The request has been rejected.");
         } else {
-          System.out.println("The request has been accepted.");
+          Console.log("The request has been accepted.");
           RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort, packet.neighborID);
           // add the link
           Link link = new Link(router.getDescription(), targetRouter);
@@ -48,7 +48,7 @@ public class HelloHandler extends AbstractMsgHandler {
 
   public void handleAccept() {
 
-    System.out.println("You have accepted the request.");
+    Console.log("You have accepted the request.");
     // add the link
     Link link = new Link(router.getDescription(), originatedRouter);
     router.addLink(link);
@@ -61,7 +61,7 @@ public class HelloHandler extends AbstractMsgHandler {
   }
 
   public void handleReject() {
-    System.out.println("You have rejected the request.");
+    Console.log("You have rejected the request.");
     // set the neighbor id field to -1
     packet.neighborID = "-1";
     router.sendPacket(packet, originatedRouter);

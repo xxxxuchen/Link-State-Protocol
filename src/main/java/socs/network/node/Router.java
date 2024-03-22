@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 
 public class Router implements Node {
 
-  protected LinkStateDatabase lsd;
+  private LinkStateDatabase lsd;
 
   private volatile RouterDescription rd;
 
@@ -159,12 +159,18 @@ public class Router implements Node {
         } else if (command.equals("neighbors")) {
           //output neighbors
           processNeighbors();
+
+          // for reading user confirmation on attach request
         } else if (command.equals("Y") || command.equals("y")) {
           HelloHandler helloHandler = (HelloHandler) handlers[0];
           helloHandler.handleAccept();
+          command = br.readLine();
+          continue;
         } else if (command.equals("N") || command.equals("n")) {
           HelloHandler helloHandler = (HelloHandler) handlers[0];
           helloHandler.handleReject();
+          command = br.readLine();
+          continue;
         } else {
           //invalid command
           break;
