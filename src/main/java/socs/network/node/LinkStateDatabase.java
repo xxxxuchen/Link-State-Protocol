@@ -4,11 +4,13 @@ import socs.network.message.LSA;
 import socs.network.message.LinkDescription;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LinkStateDatabase {
 
   //linkID => LSAInstance
-  private final HashMap<String, LSA> _store = new HashMap<String, LSA>();
+  private final Map<String, LSA> _store = new ConcurrentHashMap<String, LSA>();
 
   private final Node router;
 

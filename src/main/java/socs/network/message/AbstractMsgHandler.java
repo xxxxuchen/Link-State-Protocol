@@ -2,6 +2,7 @@ package socs.network.message;
 
 import socs.network.node.LinkStateDatabase;
 import socs.network.node.Node;
+import socs.network.util.Console;
 
 public abstract class AbstractMsgHandler implements MessageHandler {
   protected Node router;
@@ -15,6 +16,6 @@ public abstract class AbstractMsgHandler implements MessageHandler {
   public void handleMessage(SOSPFPacket packet) {
     String srcSimulatedIP = packet.srcIP;
     String packetType = packet.sospfType == 0 ? "HELLO" : "LSAUPDATE";
-    System.out.println("Received " + packetType + " packet from " + srcSimulatedIP);
+    Console.log("Received " + packetType + " packet from " + srcSimulatedIP, true);
   }
 }

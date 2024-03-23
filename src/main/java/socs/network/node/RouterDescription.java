@@ -22,7 +22,8 @@ public class RouterDescription {
   //status of the router
   private final RouterStatus status;
 
-  private RouterDescription(String processIPAddress, int processPortNumber, String simulatedIPAddress, RouterStatus status) {
+  private RouterDescription(String processIPAddress, int processPortNumber, String simulatedIPAddress,
+                            RouterStatus status) {
     this.processIPAddress = processIPAddress;
     this.processPortNumber = processPortNumber;
     this.simulatedIPAddress = simulatedIPAddress;
@@ -30,16 +31,20 @@ public class RouterDescription {
   }
 
   // factory method to create and reuse the router description with INIT status by default
-  public static RouterDescription getInstance(String processIPAddress, int processPortNumber, String simulatedIPAddress) {
+  public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
+                                              String simulatedIPAddress) {
     String key = processIPAddress + ":" + processPortNumber + ":" + simulatedIPAddress + ":" + RouterStatus.INIT;
-    return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber, simulatedIPAddress, RouterStatus.INIT));
+    return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber,
+      simulatedIPAddress, RouterStatus.INIT));
   }
 
 
   // overloaded factory method to create and reuse the router description with a specific status
-  public static RouterDescription getInstance(String processIPAddress, int processPortNumber, String simulatedIPAddress, RouterStatus status) {
+  public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
+                                              String simulatedIPAddress, RouterStatus status) {
     String key = processIPAddress + ":" + processPortNumber + ":" + simulatedIPAddress + ":" + status;
-    return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber, simulatedIPAddress, status));
+    return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber,
+      simulatedIPAddress, status));
   }
 
 

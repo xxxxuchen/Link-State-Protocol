@@ -29,13 +29,13 @@ public class HelloHandler extends AbstractMsgHandler {
       // attach request is sent from the originated neighbor
       if (packet.srcIP.equals(packet.routerID)) {
         super.handleMessage(packet);
-        System.out.print("Do you accept this request?(Y/N)：");
+        Console.logOneLine("Do you accept this request?(Y/N)：");
       } else {
         // response of attach request from the target neighbor
         if (packet.neighborID.equals("-1")) {
-          Console.log("The request has been rejected.");
+          Console.log("The request has been rejected.", true);
         } else {
-          Console.log("The request has been accepted.");
+          Console.log("The request has been accepted.", true);
           int targetPort = IP2PortMap.get(packet.routerID);
           RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", targetPort, packet.routerID);
           // add the link
@@ -51,7 +51,7 @@ public class HelloHandler extends AbstractMsgHandler {
 
   public void handleAccept() {
 
-    Console.log("You have accepted the request.");
+    Console.log("You have accepted the request.", false);
     // add the link
     Link link = new Link(router.getDescription(), originatedRouter);
     router.addLink(link);
@@ -63,7 +63,7 @@ public class HelloHandler extends AbstractMsgHandler {
   }
 
   public void handleReject() {
-    Console.log("You have rejected the request.");
+    Console.log("You have rejected the request.", false);
     // set the neighbor id field to -1, indicating the request is rejected
     packet.neighborID = "-1";
     router.sendPacket(packet, originatedRouter);
