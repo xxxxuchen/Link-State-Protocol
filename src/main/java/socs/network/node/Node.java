@@ -9,9 +9,9 @@ public interface Node {
 
   public RouterDescription getAttachedNeighbor(String simulatedIP);
 
-  public void addLink(Link link);
+  public int getOutgoingPort(String simulatedIP);
 
-  public void setStatus(RouterStatus status);
+  public void addLink(Link link);
 
   public RouterDescription getDescription();
 

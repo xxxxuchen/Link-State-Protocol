@@ -4,10 +4,6 @@ import socs.network.node.*;
 import socs.network.util.Console;
 import socs.network.util.IP2PortMap;
 
-
-/**
- * TODO: Thread Safe
- */
 public class HelloHandler extends AbstractMsgHandler {
 
   // the initial router that sends the hello packet
@@ -21,11 +17,12 @@ public class HelloHandler extends AbstractMsgHandler {
   @Override
   public void handleMessage(SOSPFPacket pkt) {
     this.packet = pkt;
-    this.originatedRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort, packet.srcIP);
-    RouterDescription neighbor = router.getAttachedNeighbor(packet.neighborID);
+    this.originatedRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort,
+      packet.srcIP);
+    RouterDescription attachedNeighbor = router.getAttachedNeighbor(packet.routerID);
 
     // attach request
-    if (neighbor == null) {
+    if (attachedNeighbor == null) {
       // attach request is sent from the originated neighbor
       if (packet.srcIP.equals(packet.routerID)) {
         super.handleMessage(packet);
@@ -37,20 +34,42 @@ public class HelloHandler extends AbstractMsgHandler {
         } else {
           Console.log("The request has been accepted.", true);
           int targetPort = IP2PortMap.get(packet.routerID);
-          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", targetPort, packet.routerID);
+          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", targetPort,
+            packet.routerID);
           // add the link
           Link link = new Link(router.getDescription(), targetRouter);
           router.addLink(link);
         }
       }
+    } else { // start request
+      super.handleMessage(packet);
+      if (attachedNeighbor.getStatus() == null && packet.srcIP.equals(packet.routerID)) {
+        attachedNeighbor.setStatus(RouterStatus.INIT);
+        Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to INIT", true);
+        // send the hello packet back to the neighbor
+        packet.routerID = router.getDescription().getSimulatedIP();
+        router.sendPacket(packet, originatedRouter);
+      } else if (attachedNeighbor.getStatus() == null && !packet.srcIP.equals(packet.routerID)) {
+        attachedNeighbor.setStatus(RouterStatus.TWO_WAY);
+        Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to TWO_WAY", true);
+        lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());
+        // send the hello packet back to the neighbor
+        packet.routerID = router.getDescription().getSimulatedIP();
+        router.sendPacket(packet, originatedRouter);
+        // broadcast the LSAUpdate packet to all connected neighbors
+        broadcastLSAUpdate();
+      } else if (attachedNeighbor.getStatus().equals(RouterStatus.INIT) && packet.srcIP.equals(packet.routerID)) {
+        attachedNeighbor.setStatus(RouterStatus.TWO_WAY);
+        Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to TWO_WAY", true);
+        lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());
+        // broadcast the LSAUpdate packet to all connected neighbors
+        broadcastLSAUpdate();
+      }
     }
-
-    // TODO: Start Request
 
   }
 
   public void handleAccept() {
-
     Console.log("You have accepted the request.", false);
     // add the link
     Link link = new Link(router.getDescription(), originatedRouter);
@@ -67,6 +86,17 @@ public class HelloHandler extends AbstractMsgHandler {
     // set the neighbor id field to -1, indicating the request is rejected
     packet.neighborID = "-1";
     router.sendPacket(packet, originatedRouter);
+  }
+
+  private void broadcastLSAUpdate() {
+    RouterDescription[] allNeighbors = router.getAttachedNeighbors();
+    for (RouterDescription neighbor : allNeighbors) {
+      if (neighbor.getStatus().equals(RouterStatus.TWO_WAY)) {
+        SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(router.getDescription(), neighbor,
+          lsd.getAllLSAs());
+        router.sendPacket(lsaUpdatePacket, neighbor);
+      }
+    }
   }
 
 }

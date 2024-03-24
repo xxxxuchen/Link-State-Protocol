@@ -6,8 +6,8 @@ import java.util.Objects;
 
 /**
  * Encapsulates the information of a router.
- * It is an immutable class, thread synchronization is not needed.
- * It applies the Flyweight pattern to ensure the uniqueness of instances.
+ * RouterDescription is uniquely identified by processIPAddress, processPortNumber, and simulatedIPAddress.
+ * It applies the Flyweight pattern to ensure the uniqueness of RouterDescription object.
  */
 
 public class RouterDescription {
@@ -20,31 +20,20 @@ public class RouterDescription {
   //used to identify the router in the simulated network space
   private final String simulatedIPAddress;
   //status of the router
-  private final RouterStatus status;
+  private RouterStatus status;
 
-  private RouterDescription(String processIPAddress, int processPortNumber, String simulatedIPAddress,
-                            RouterStatus status) {
+  private RouterDescription(String processIPAddress, int processPortNumber, String simulatedIPAddress) {
     this.processIPAddress = processIPAddress;
     this.processPortNumber = processPortNumber;
     this.simulatedIPAddress = simulatedIPAddress;
-    this.status = status;
   }
 
-  // factory method to create and reuse the router description with INIT status by default
+  // factory method to create and reuse the router description with null status by default
   public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
                                               String simulatedIPAddress) {
-    String key = processIPAddress + ":" + processPortNumber + ":" + simulatedIPAddress + ":" + RouterStatus.INIT;
+    String key = processIPAddress + ":" + processPortNumber + ":" + simulatedIPAddress;
     return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber,
-      simulatedIPAddress, RouterStatus.INIT));
-  }
-
-
-  // overloaded factory method to create and reuse the router description with a specific status
-  public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
-                                              String simulatedIPAddress, RouterStatus status) {
-    String key = processIPAddress + ":" + processPortNumber + ":" + simulatedIPAddress + ":" + status;
-    return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber,
-      simulatedIPAddress, status));
+      simulatedIPAddress));
   }
 
 
@@ -60,13 +49,12 @@ public class RouterDescription {
     return simulatedIPAddress;
   }
 
-  public RouterStatus getStatus() {
+  public synchronized RouterStatus getStatus() {
     return status;
   }
 
-  // it returns a new instance with a changed status without mutate the state of the object
-  public RouterDescription changedStatus(RouterStatus status) {
-    return getInstance(this.processIPAddress, this.processPortNumber, this.simulatedIPAddress, status);
+  public synchronized void setStatus(RouterStatus status) {
+    this.status = status;
   }
 
   @Override

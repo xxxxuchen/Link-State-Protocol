@@ -2,6 +2,8 @@ package socs.network.message;
 
 import socs.network.node.RouterDescription;
 
+import java.util.Vector;
+
 public class PacketFactory {
   public static final short HELLO = 0;
   public static final short LSAUPDATE = 1;
@@ -12,9 +14,9 @@ public class PacketFactory {
     return packet;
   }
 
-  public static SOSPFPacket createLSAUpdatePacket(RouterDescription src, RouterDescription dst) {
+  public static SOSPFPacket createLSAUpdatePacket(RouterDescription src, RouterDescription dst, Vector<LSA> lsaArray) {
     SOSPFPacket packet = initPacket(src, dst, LSAUPDATE);
-    // TODO: Add LSA array
+    packet.lsaArray = lsaArray;
     return packet;
   }
 

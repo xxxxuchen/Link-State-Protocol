@@ -3,13 +3,13 @@ package socs.network.node;
 import socs.network.message.LSA;
 import socs.network.message.LinkDescription;
 
-import java.util.HashMap;
+import java.util.Vector;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LinkStateDatabase {
 
-  //linkID => LSAInstance
+  // originated router's simulated IP => LSAInstance
   private final Map<String, LSA> _store = new ConcurrentHashMap<String, LSA>();
 
   private final Node router;
@@ -36,6 +36,21 @@ public class LinkStateDatabase {
     LinkDescription ld = new LinkDescription(rd.getSimulatedIP(), -1);
     lsa.links.add(ld);
     return lsa;
+  }
+
+  public void addLinkDescription(String neighborIP) {
+    int portNum = router.getOutgoingPort(neighborIP);
+    LinkDescription ld = new LinkDescription(neighborIP, portNum);
+    LSA lsa = _store.get(router.getDescription().getSimulatedIP());
+    lsa.links.add(ld);
+  }
+
+  public Vector<LSA> getAllLSAs() {
+    return new Vector<>(_store.values());
+  }
+
+  public LSA getLSA(String linkStateID) {
+    return _store.get(linkStateID);
   }
 
 

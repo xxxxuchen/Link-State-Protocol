@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 
 public class Router implements Node {
@@ -22,16 +23,12 @@ public class Router implements Node {
   //assuming that all routers are with 4 ports
   private final Link[] ports = new Link[4]; // store attached neighbors
 
-  private final RouterDescription[] connectedNeighbors = new RouterDescription[4];
-
   // map message type to message handler, 0 for helloHandler, 1 for LSAUpdateHandler
   private final MessageHandler[] handlers = new MessageHandler[2];
 
   private final PacketListener packetListener = new PacketListener();
 
   private final Object portsLock = new Object();
-
-  private final Object connNeighborsLock = new Object();
 
 
   public Router(Configuration config) {
@@ -42,6 +39,17 @@ public class Router implements Node {
     lsd = new LinkStateDatabase((Node) rd);
     registerHandler();
     packetListener.start();
+  }
+
+  public int getOutgoingPort(String simulatedIP) {
+    synchronized (portsLock) {
+      for (int i = 0; i < ports.length; i++) {
+        if (ports[i] != null && ports[i].router2.getSimulatedIP().equals(simulatedIP)) {
+          return i;
+        }
+      }
+      return -1;
+    }
   }
 
   public RouterDescription[] getAttachedNeighbors() {
@@ -71,16 +79,11 @@ public class Router implements Node {
     return rd;
   }
 
-  public void setStatus(RouterStatus status) {
-    rd = rd.changedStatus(status);
-  }
-
   public void addLink(Link link) {
     synchronized (portsLock) {
       for (int i = 0; i < ports.length; i++) {
         if (ports[i] == null) {
           ports[i] = link;
-          connectedNeighbors[i] = link.router2;
           break;
         }
       }
@@ -171,12 +174,9 @@ public class Router implements Node {
    */
   private void processNeighbors() {
     String neighbors = "";
-    synchronized (connNeighborsLock) {
-      for (RouterDescription neighbor : connectedNeighbors) {
-        if (neighbor != null) {
-          neighbors += neighbor.getSimulatedIP() + "/n";
-        }
-      }
+    LSA lsa = lsd.getLSA(rd.getSimulatedIP());
+    for (LinkDescription ld : lsa.links) {
+      neighbors += ld.linkID + "\n";
     }
     Console.log(neighbors, false);
   }
@@ -299,11 +299,11 @@ public class Router implements Node {
     }
 
     public void Stop() {
+      serverSocket.close();
       this.interrupt();
       for (Thread channel : ChannelThreads) {
         channel.interrupt();
       }
-      serverSocket.close();
     }
   }
 }
