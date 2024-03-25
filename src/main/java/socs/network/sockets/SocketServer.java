@@ -25,10 +25,6 @@ public class SocketServer {
     return null;
   }
 
-  public synchronized int getLocalPort() {
-    return serverSocket.getLocalPort();
-  }
-
   public synchronized void close() {
     try {
       serverSocket.close();

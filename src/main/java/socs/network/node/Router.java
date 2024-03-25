@@ -11,14 +11,12 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 
 public class Router implements Node {
-
   private final LinkStateDatabase lsd;
 
-  private volatile RouterDescription rd;
+  private final RouterDescription rd;
 
   //assuming that all routers are with 4 ports
   private final Link[] ports = new Link[4]; // store attached neighbors
@@ -41,6 +39,7 @@ public class Router implements Node {
     packetListener.start();
   }
 
+  @Override
   public int getOutgoingPort(String simulatedIP) {
     synchronized (portsLock) {
       for (int i = 0; i < ports.length; i++) {
@@ -52,6 +51,7 @@ public class Router implements Node {
     }
   }
 
+  @Override
   public RouterDescription[] getAttachedNeighbors() {
     synchronized (portsLock) {
       RouterDescription[] neighbors = new RouterDescription[ports.length];
@@ -64,6 +64,7 @@ public class Router implements Node {
     }
   }
 
+  @Override
   public RouterDescription getAttachedNeighbor(String simulatedIP) {
     synchronized (portsLock) {
       for (Link link : ports) {
@@ -75,10 +76,12 @@ public class Router implements Node {
     }
   }
 
+  @Override
   public RouterDescription getDescription() {
     return rd;
   }
 
+  @Override
   public void addLink(Link link) {
     synchronized (portsLock) {
       for (int i = 0; i < ports.length; i++) {
@@ -121,7 +124,7 @@ public class Router implements Node {
   private void processAttach(String processIP, short processPort,
                              String simulatedIP) {
     if (simulatedIP.equals(rd.getSimulatedIP())) {
-      System.out.println("Cannot attach to itself");
+      Console.log("Cannot attach to itself", false);
       return;
     }
 
@@ -129,7 +132,7 @@ public class Router implements Node {
       // check if the link already exists
       for (Link link : ports) {
         if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
-          System.out.println("Link already exists");
+          Console.log("Link already exists", false);
           return;
         }
       }
@@ -198,29 +201,6 @@ public class Router implements Node {
     // register LSAUpdate message handler
     handlers[1] = new LSAUpdateHandler(this, lsd);
   }
-
-//  // TODO: Thread Termination
-//  private void listenPackets() {
-//    Thread listener = new Thread(() -> {
-//      SocketServer serverSocket = new SocketServer(rd.getProcessPort());
-//      while (true) {
-//        SocketClient clientSocket = serverSocket.accept();
-//        // create a new thread to handle the incoming message
-//        Thread channel = new Thread(() -> {
-//          while (true) {
-//            SOSPFPacket packet = clientSocket.receive();
-//            if (packet != null) {
-//              // call the corresponding handler callback
-//              handlers[packet.sospfType].handleMessage(packet);
-//            }
-//          }
-//        });
-//        channel.start();
-//      }
-//    });
-//    listener.start();
-//
-//  }
 
   public void terminal() {
     try {

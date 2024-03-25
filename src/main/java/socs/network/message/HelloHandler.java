@@ -66,7 +66,11 @@ public class HelloHandler extends AbstractMsgHandler {
         broadcastLSAUpdate();
       }
     }
+  }
 
+  @Override
+  protected boolean broadcastCondition(RouterDescription neighbor) {
+    return neighbor.getStatus().equals(RouterStatus.TWO_WAY);
   }
 
   public void handleAccept() {
@@ -86,17 +90,6 @@ public class HelloHandler extends AbstractMsgHandler {
     // set the neighbor id field to -1, indicating the request is rejected
     packet.neighborID = "-1";
     router.sendPacket(packet, originatedRouter);
-  }
-
-  private void broadcastLSAUpdate() {
-    RouterDescription[] allNeighbors = router.getAttachedNeighbors();
-    for (RouterDescription neighbor : allNeighbors) {
-      if (neighbor.getStatus().equals(RouterStatus.TWO_WAY)) {
-        SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(router.getDescription(), neighbor,
-          lsd.getAllLSAs());
-        router.sendPacket(lsaUpdatePacket, neighbor);
-      }
-    }
   }
 
 }

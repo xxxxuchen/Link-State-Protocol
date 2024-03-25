@@ -30,7 +30,7 @@ public class LinkStateDatabase {
     return null;
   }
 
-  //initialize the linkstate database by adding an entry about the router itself
+  //initialize the link state database by adding an entry about the router itself
   private LSA initLinkStateDatabase(RouterDescription rd) {
     LSA lsa = new LSA(rd.getSimulatedIP());
     LinkDescription ld = new LinkDescription(rd.getSimulatedIP(), -1);
@@ -42,7 +42,16 @@ public class LinkStateDatabase {
     int portNum = router.getOutgoingPort(neighborIP);
     LinkDescription ld = new LinkDescription(neighborIP, portNum);
     LSA lsa = _store.get(router.getDescription().getSimulatedIP());
+    lsa.lsaSeqNumber++;
     lsa.links.add(ld);
+  }
+
+  public void updateLSA(LSA lsa) {
+    if (_store.containsKey(lsa.linkStateID) && lsa.lsaSeqNumber < _store.get(lsa.linkStateID).lsaSeqNumber) {
+      return;
+    }
+    _store.put(lsa.linkStateID, lsa);
+    // TODO: adjust portNum if necessary
   }
 
   public Vector<LSA> getAllLSAs() {
