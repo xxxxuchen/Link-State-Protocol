@@ -3,6 +3,10 @@ package socs.network.message;
 import java.io.*;
 import java.util.Vector;
 
+/**
+ * each channel thread handle its own packet,
+ * lock is not needed
+ */
 public class SOSPFPacket implements Serializable {
 
   //for inter-process communication

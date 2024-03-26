@@ -3,8 +3,8 @@ package socs.network.message;
 import java.io.Serializable;
 
 public class LinkDescription implements Serializable {
-  public String linkID; // connected neighbor's simulated IP address
-  public int portNum;
+  public final String linkID; // connected neighbor's simulated IP address
+  public final int portNum;
 
   public LinkDescription(String linkID, int portNum) {
     this.linkID = linkID;

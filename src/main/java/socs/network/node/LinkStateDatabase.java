@@ -7,6 +7,10 @@ import java.util.Vector;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * No synchronization lock is needed for this class
+ * the synchronization of all the underlying data structures and references are already ensured
+ */
 public class LinkStateDatabase {
 
   // originated router's simulated IP => LSAInstance
@@ -42,12 +46,13 @@ public class LinkStateDatabase {
     int portNum = router.getOutgoingPort(neighborIP);
     LinkDescription ld = new LinkDescription(neighborIP, portNum);
     LSA lsa = _store.get(router.getDescription().getSimulatedIP());
-    lsa.lsaSeqNumber++;
+    lsa.lsaSeqNumber.incrementAndGet();
     lsa.links.add(ld);
   }
 
   public void updateLSA(LSA lsa) {
-    if (_store.containsKey(lsa.linkStateID) && lsa.lsaSeqNumber < _store.get(lsa.linkStateID).lsaSeqNumber) {
+    if (_store.containsKey(lsa.linkStateID) &&
+      lsa.lsaSeqNumber.get() < _store.get(lsa.linkStateID).lsaSeqNumber.get()) {
       return;
     }
     _store.put(lsa.linkStateID, lsa);

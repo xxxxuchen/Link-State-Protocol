@@ -12,6 +12,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The instance of Router class can be shared by multiple channel threads
+ * Methods that access or modify the ports array must be protected by synchronization lock
+ */
 public class Router implements Node {
   private final LinkStateDatabase lsd;
 
@@ -188,7 +192,7 @@ public class Router implements Node {
    */
   private void processQuit() {
     // stop all running thread
-    packetListener.Stop();
+    packetListener.terminate();
     System.exit(0);
   }
 
@@ -277,7 +281,7 @@ public class Router implements Node {
       }
     }
 
-    public void Stop() {
+    public void terminate() {
       serverSocket.close();
       this.interrupt();
       for (Thread channel : ChannelThreads) {
