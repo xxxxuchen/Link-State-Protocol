@@ -1,8 +1,8 @@
 package socs.network.node;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Encapsulates the information of a router.
@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public class RouterDescription {
   // Map to store unique instances of RouterDescription
-  private static final Map<String, RouterDescription> instances = new HashMap<>();
+  private static final Map<String, RouterDescription> instances = new ConcurrentHashMap<>();
 
   //used to socket communication
   private final String processIPAddress;
@@ -55,15 +55,6 @@ public class RouterDescription {
 
   public synchronized void setStatus(RouterStatus status) {
     this.status = status;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    RouterDescription that = (RouterDescription) o;
-    return processPortNumber == that.processPortNumber && Objects.equals(processIPAddress, that.processIPAddress)
-      && Objects.equals(simulatedIPAddress, that.simulatedIPAddress) && status == that.status;
   }
 
   @Override
