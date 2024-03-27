@@ -16,7 +16,7 @@ public abstract class AbstractMsgHandler implements MessageHandler {
 
   // log the basic information of received packet
   public void handleMessage(SOSPFPacket packet) {
-    String srcSimulatedIP = packet.routerID;
+    String srcSimulatedIP = packet.srcIP;
     String packetType = packet.sospfType == 0 ? "HELLO" : "LSAUPDATE";
     Console.log("Received " + packetType + " packet from " + srcSimulatedIP, true);
   }

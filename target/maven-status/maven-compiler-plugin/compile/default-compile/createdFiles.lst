@@ -1,7 +1,10 @@
 socs/network/sockets/SocketClient.class
 socs/network/message/MessageHandler.class
+socs/network/node/Router$1.class
 socs/network/sockets/SocketServer.class
 socs/network/util/Console.class
+socs/network/util/IP2PortMap.class
+socs/network/node/Router$PacketListener.class
 socs/network/node/Node.class
 socs/network/message/PacketFactory.class
 socs/network/message/HelloHandler.class

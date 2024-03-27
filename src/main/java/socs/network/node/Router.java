@@ -27,7 +27,7 @@ public class Router implements Node {
   // map message type to message handler, 0 for helloHandler, 1 for LSAUpdateHandler
   private final MessageHandler[] handlers = new MessageHandler[2];
 
-  private final PacketListener packetListener = new PacketListener();
+  private final PacketListener packetListener;
 
   private final Object portsLock = new Object();
 
@@ -37,9 +37,9 @@ public class Router implements Node {
     int processPort = config.getInt("socs.network.router.port");
     IP2PortMap.add(simulatedIP, processPort);
     rd = RouterDescription.getInstance("127.0.0.1", processPort, simulatedIP);
-    lsd = new LinkStateDatabase((Node) rd);
-    registerHandler();
-    packetListener.start();
+    lsd = new LinkStateDatabase(this);
+    packetListener = new PacketListener();
+    startListener();
   }
 
   @Override
@@ -197,12 +197,12 @@ public class Router implements Node {
   }
 
 
-  private void registerHandler() {
+  private void startListener() {
     // register hello message handler
     handlers[0] = new HelloHandler(this, lsd);
-
     // register LSAUpdate message handler
     handlers[1] = new LSAUpdateHandler(this, lsd);
+    packetListener.start();
   }
 
   public void terminal() {
