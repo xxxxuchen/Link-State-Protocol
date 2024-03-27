@@ -5,7 +5,6 @@ import socs.network.sockets.SocketClient;
 import socs.network.sockets.SocketServer;
 import socs.network.util.Configuration;
 import socs.network.util.Console;
-import socs.network.util.IP2PortMap;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -35,7 +34,6 @@ public class Router implements Node {
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");
     int processPort = config.getInt("socs.network.router.port");
-    IP2PortMap.add(simulatedIP, processPort);
     rd = RouterDescription.getInstance("127.0.0.1", processPort, simulatedIP);
     lsd = new LinkStateDatabase(this);
     packetListener = new PacketListener();
