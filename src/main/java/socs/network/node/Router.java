@@ -234,14 +234,11 @@ public class Router implements Node {
         } else if (command.equals("neighbors")) {
           //output neighbors
           processNeighbors();
-
           // for reading user confirmation on attach request
         } else if (command.equals("Y") || command.equals("y")) {
-          HelloHandler helloHandler = (HelloHandler) handlers[0];
-          helloHandler.handleAccept();
+          handlers[0].handleAccept();
         } else if (command.equals("N") || command.equals("n")) {
-          HelloHandler helloHandler = (HelloHandler) handlers[0];
-          helloHandler.handleReject();
+          handlers[0].handleReject();
         } else {
           //invalid command
           break;

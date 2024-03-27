@@ -73,6 +73,7 @@ public class HelloHandler extends AbstractMsgHandler {
     return neighbor.getStatus().equals(RouterStatus.TWO_WAY);
   }
 
+  @Override
   public void handleAccept() {
     Console.log("You have accepted the request.", false);
     // add the link
@@ -85,6 +86,7 @@ public class HelloHandler extends AbstractMsgHandler {
     router.sendPacket(packet, originatedRouter);
   }
 
+  @Override
   public void handleReject() {
     Console.log("You have rejected the request.", false);
     // set the neighbor id field to -1, indicating the request is rejected
