@@ -12,4 +12,8 @@ public class Link {
     router1 = r1;
     router2 = r2;
   }
+
+  public String toString() {
+    return router1.getSimulatedIP() + " - " + router2.getSimulatedIP();
+  }
 }

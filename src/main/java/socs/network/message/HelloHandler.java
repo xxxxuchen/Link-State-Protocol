@@ -2,7 +2,6 @@ package socs.network.message;
 
 import socs.network.node.*;
 import socs.network.util.Console;
-import socs.network.util.IP2PortMap;
 
 public class HelloHandler extends AbstractMsgHandler {
 
@@ -52,7 +51,7 @@ public class HelloHandler extends AbstractMsgHandler {
         lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());
         sendBackHelloPacket();
         broadcastLSAUpdate();
-      } else if (attachedNeighbor.getStatus().equals(RouterStatus.INIT) && !packet.srcIP.equals(packet.neighborID)) {
+      } else if (attachedNeighbor.getStatus().equals(RouterStatus.INIT) && packet.srcIP.equals(packet.neighborID)) {
         attachedNeighbor.setStatus(RouterStatus.TWO_WAY);
         Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to TWO_WAY", true);
         lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());

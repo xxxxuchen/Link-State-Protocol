@@ -180,7 +180,9 @@ public class Router implements Node {
     String neighbors = "";
     LSA lsa = lsd.getLSA(rd.getSimulatedIP());
     for (LinkDescription ld : lsa.links) {
-      neighbors += ld.linkID + "\n";
+      if (!ld.linkID.equals(rd.getSimulatedIP())) {
+        neighbors += ld.linkID + "\n";
+      }
     }
     Console.log(neighbors, false);
   }
@@ -223,7 +225,7 @@ public class Router implements Node {
           processAttach(cmdLine[1], Short.parseShort(cmdLine[2]),
             cmdLine[3]);
         } else if (command.equals("start")) {
-          System.out.println("Starting the router");
+          Console.log("Starting the router", false);
           processStart();
         } else if (command.equals("connect ")) {
           String[] cmdLine = command.split(" ");
@@ -241,7 +243,7 @@ public class Router implements Node {
           //invalid command
           break;
         }
-        System.out.print(">> ");
+        System.out.print("\n>> ");
         command = br.readLine();
       }
       isReader.close();

@@ -24,7 +24,7 @@ public abstract class AbstractMsgHandler implements MessageHandler {
   protected final void broadcastLSAUpdate() {
     RouterDescription[] allNeighbors = router.getAttachedNeighbors();
     for (RouterDescription neighbor : allNeighbors) {
-      if (broadcastCondition(neighbor)) {
+      if (neighbor != null && broadcastCondition(neighbor)) {
         SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(router.getDescription(), neighbor,
           lsd.getAllLSAs());
         router.sendPacket(lsaUpdatePacket, neighbor);
