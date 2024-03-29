@@ -3,9 +3,13 @@ package socs.network.node;
 import socs.network.message.LSA;
 import socs.network.message.LinkDescription;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,10 +34,56 @@ public class LinkStateDatabase {
   /**
    * output the shortest path from this router to the destination with the given IP address
    */
-  String getShortestPath(String destinationIP) {
-    //TODO: fill the implementation here
-    return null;
+public String getShortestPath(String destinationIP) {
+  Map<String, Integer> dist = new HashMap<>(); // Distance from source to each node
+  Map<String, String> prev = new HashMap<>(); // Previous node in optimal path from source
+  PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>((a, b) -> a.getValue() - b.getValue());
+
+  // Initialize distances and priority queue
+  for (String ip : _store.keySet()) {
+    dist.put(ip, Integer.MAX_VALUE);
+    prev.put(ip, null);
+    pq.offer(new AbstractMap.SimpleEntry<>(ip, Integer.MAX_VALUE));
   }
+
+  // Set the distance for the starting router (itself) to 0
+  String startIP = router.getDescription().getSimulatedIP();
+  dist.put(startIP, 0);
+  pq.offer(new AbstractMap.SimpleEntry<>(startIP, 0));
+
+  while (!pq.isEmpty()) {
+    Map.Entry<String, Integer> entry = pq.poll();
+    String currentIP = entry.getKey();
+    int currentDist = entry.getValue();
+
+    // If we reached the destination or the smallest distance is INFINITY (unreachable), stop
+    if (currentIP.equals(destinationIP) || currentDist == Integer.MAX_VALUE) break;
+
+    LSA currentLSA = _store.get(currentIP);
+    for (LinkDescription ld : currentLSA.links) {
+      String neighborIP = ld.linkID;
+      int weight = 1; // Each hop has a weight of 1
+      if (dist.get(currentIP) + weight < dist.get(neighborIP)) {
+        dist.put(neighborIP, dist.get(currentIP) + weight);
+        prev.put(neighborIP, currentIP);
+        pq.offer(new AbstractMap.SimpleEntry<>(neighborIP, dist.get(neighborIP)));
+      }
+    }
+  }
+
+  // Reconstruct the path
+  if (dist.get(destinationIP) == Integer.MAX_VALUE) {
+    return "No path found"; // Destination is unreachable
+  }
+
+  LinkedList<String> path = new LinkedList<>();
+  for (String at = destinationIP; at != null; at = prev.get(at)) {
+    path.addFirst(at);
+  }
+
+  return String.join(" -> ", path);
+}
+
 
   //initialize the link state database by adding an entry about the router itself
   private LSA initLinkStateDatabase(RouterDescription rd) {

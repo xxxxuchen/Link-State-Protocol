@@ -105,7 +105,14 @@ public class Router implements Node {
    * @param destinationIP the ip adderss of the destination simulated router
    */
   private void processDetect(String destinationIP) {
+    // Ensure the destination IP is not the router's own IP
+    if (destinationIP.equals(this.rd.getSimulatedIP())) {
+      System.out.println("The destination IP matches the router's own IP.");
+      return;
+    }
 
+    String path = lsd.getShortestPath(destinationIP);
+    System.out.println("Shortest path to " + destinationIP + ": " + path);
   }
 
   /**
