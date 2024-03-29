@@ -1,3 +1,5 @@
 **/.DS_Store
 COMP535.iml
 .idea/
+*.class
+*.lst
