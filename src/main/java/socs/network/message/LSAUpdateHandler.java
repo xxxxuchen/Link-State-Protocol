@@ -4,6 +4,7 @@ import socs.network.node.LinkStateDatabase;
 import socs.network.node.Node;
 import socs.network.node.RouterDescription;
 import socs.network.node.RouterStatus;
+import socs.network.util.Console;
 
 public class LSAUpdateHandler extends AbstractMsgHandler {
 
@@ -27,7 +28,12 @@ public class LSAUpdateHandler extends AbstractMsgHandler {
 
   @Override
   protected boolean broadcastCondition(RouterDescription neighbor) {
-    return !neighbor.getSimulatedIP().equals(packet.srcIP) && neighbor.getStatus() == RouterStatus.TWO_WAY;
+    // do not send the packet back to the neighbor that sent it
+    return !neighbor.getSimulatedIP().equals(packet.srcIP);
   }
 
+  @Override
+  public String toString() {
+    return "LSAUpdateHandler";
+  }
 }

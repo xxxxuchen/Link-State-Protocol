@@ -3,6 +3,7 @@ package socs.network.node;
 import socs.network.message.LSA;
 import socs.network.message.LinkDescription;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,6 +58,18 @@ public class LinkStateDatabase {
     }
     _store.put(lsa.linkStateID, lsa);
     // TODO: adjust portNum if necessary
+  }
+
+  public RouterDescription[] getConnectedNeighbors() {
+    LSA lsa = _store.get(router.getDescription().getSimulatedIP());
+    ArrayList<RouterDescription> neighbors = new ArrayList<>();
+    for (LinkDescription ld : lsa.links) {
+      // exclude the router itself
+      if (!ld.linkID.equals(router.getDescription().getSimulatedIP())) {
+        neighbors.add(RouterDescription.getInstance(ld.linkID));
+      }
+    }
+    return neighbors.toArray(new RouterDescription[0]);
   }
 
   public Vector<LSA> getAllLSAs() {

@@ -178,11 +178,9 @@ public class Router implements Node {
    */
   private void processNeighbors() {
     String neighbors = "";
-    LSA lsa = lsd.getLSA(rd.getSimulatedIP());
-    for (LinkDescription ld : lsa.links) {
-      if (!ld.linkID.equals(rd.getSimulatedIP())) {
-        neighbors += ld.linkID + "\n";
-      }
+    RouterDescription[] connectedNeighbors = lsd.getConnectedNeighbors();
+    for (RouterDescription neighbor : connectedNeighbors) {
+      neighbors += neighbor.getSimulatedIP() + "\n";
     }
     Console.log(neighbors, false);
   }

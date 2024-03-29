@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Encapsulates the information of a router.
- * RouterDescription is uniquely identified by processIPAddress, processPortNumber, and simulatedIPAddress.
+ * RouterDescription is uniquely identified by simulatedIPAddress.
  * It applies the Flyweight pattern to ensure the uniqueness of RouterDescription object.
  */
 
@@ -20,7 +20,7 @@ public class RouterDescription {
   //used to identify the router in the simulated network space
   private final String simulatedIPAddress;
   //status of the router
-  private RouterStatus status;
+  private RouterStatus status = RouterStatus.NULL; // default status is null
 
   private RouterDescription(String processIPAddress, int processPortNumber, String simulatedIPAddress) {
     this.processIPAddress = processIPAddress;
@@ -31,9 +31,13 @@ public class RouterDescription {
   // factory method to create and reuse the router description with null status by default
   public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
                                               String simulatedIPAddress) {
-    String key = processIPAddress + ":" + processPortNumber + ":" + simulatedIPAddress;
-    return instances.computeIfAbsent(key, k -> new RouterDescription(processIPAddress, processPortNumber,
+    return instances.computeIfAbsent(simulatedIPAddress, k -> new RouterDescription(processIPAddress, processPortNumber,
       simulatedIPAddress));
+  }
+
+  // map the simulated IP address to the corresponding unique RouterDescription instance
+  public static RouterDescription getInstance(String simulatedIPAddress) {
+    return instances.get(simulatedIPAddress);
   }
 
 
@@ -59,10 +63,9 @@ public class RouterDescription {
 
   @Override
   public String toString() {
-    return "RouterDescription{" +
-      "processIPAddress='" + processIPAddress + '\'' +
-      ", processPortNumber=" + processPortNumber +
-      ", simulatedIPAddress='" + simulatedIPAddress + '\'' +
+    return "Router{" +
+      ", simulatedIP='" + simulatedIPAddress + '\'' +
+      ", processPort=" + processPortNumber +
       ", status=" + status +
       '}';
   }

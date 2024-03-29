@@ -41,11 +41,11 @@ public class HelloHandler extends AbstractMsgHandler {
       }
     } else { // start request
       super.handleMessage(packet);
-      if (attachedNeighbor.getStatus() == null && !packet.srcIP.equals(packet.neighborID)) {
+      if (attachedNeighbor.getStatus() == RouterStatus.NULL && !packet.srcIP.equals(packet.neighborID)) {
         attachedNeighbor.setStatus(RouterStatus.INIT);
         Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to INIT", true);
         sendBackHelloPacket();
-      } else if (attachedNeighbor.getStatus() == null && packet.srcIP.equals(packet.neighborID)) {
+      } else if (attachedNeighbor.getStatus() == RouterStatus.NULL && packet.srcIP.equals(packet.neighborID)) {
         attachedNeighbor.setStatus(RouterStatus.TWO_WAY);
         Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to TWO_WAY", true);
         lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());
@@ -62,7 +62,8 @@ public class HelloHandler extends AbstractMsgHandler {
 
   @Override
   protected boolean broadcastCondition(RouterDescription neighbor) {
-    return neighbor.getStatus().equals(RouterStatus.TWO_WAY);
+    // no condition for broadcast
+    return true;
   }
 
   @Override
@@ -90,6 +91,10 @@ public class HelloHandler extends AbstractMsgHandler {
     router.sendPacket(packet, originatedRouter);
   }
 
+  @Override
+  public String toString() {
+    return "HelloHandler";
+  }
 }
 
 

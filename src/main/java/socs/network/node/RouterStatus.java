@@ -8,4 +8,7 @@ package socs.network.node;
 public enum RouterStatus {
   INIT,
   TWO_WAY,
+
+  // create a null object that represents the absence of a router status
+  NULL
 }
