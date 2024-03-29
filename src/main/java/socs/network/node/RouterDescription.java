@@ -37,7 +37,10 @@ public class RouterDescription {
 
   // map the simulated IP address to the corresponding unique RouterDescription object
   public static RouterDescription getInstance(String simulatedIPAddress) {
-    return instances.get(simulatedIPAddress);
+    if (instances.containsKey(simulatedIPAddress)) {
+      return instances.get(simulatedIPAddress);
+    }
+    return null;
   }
 
 
@@ -63,12 +66,10 @@ public class RouterDescription {
 
   @Override
   public String toString() {
-    return "Router's Info{" +
-      "simulatedIP='" + simulatedIPAddress + '\'' +
-      ", Port=" + processPortNumber +
-      ", status=" + status +
-      '}' + "\n" +
-      "==============================================";
+    return "Router's Info: " + "\n" +
+      "Process Port Number: " + processPortNumber + "\n" +
+      "Simulated IP Address: " + simulatedIPAddress + "\n" +
+      "=================================================\n";
   }
 
   @Override

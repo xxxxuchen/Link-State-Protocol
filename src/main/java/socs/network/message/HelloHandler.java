@@ -33,8 +33,8 @@ public class HelloHandler extends AbstractMsgHandler {
           Console.log("The request has been rejected.", true);
         } else {
           Console.log("The request has been accepted.", true);
-          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1", packet.srcProcessPort,
-            packet.srcIP);
+          RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1",
+            packet.srcProcessPort, packet.srcIP);
           // add the link
           Link link = new Link(router.getDescription(), targetRouter);
           router.addLink(link);

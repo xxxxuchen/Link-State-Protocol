@@ -179,12 +179,11 @@ public class Router implements Node {
    * output the neighbors of the routers
    */
   private void processNeighbors() {
-    String neighbors = "";
     RouterDescription[] connectedNeighbors = lsd.getConnectedNeighbors();
+    Console.log("\n  Port\tIP address", false);
     for (RouterDescription neighbor : connectedNeighbors) {
-      neighbors += "\n" + neighbor.getSimulatedIP();
+      Console.log("  " + neighbor.getProcessPort() + "\t" + neighbor.getSimulatedIP(), false);
     }
-    Console.log(neighbors, false);
   }
 
   /**
@@ -193,6 +192,8 @@ public class Router implements Node {
   private void processQuit() {
     // stop all running thread
     packetListener.terminate();
+    // TODO: send the lsa update to all neighbors
+
     System.exit(0);
   }
 
@@ -226,6 +227,8 @@ public class Router implements Node {
           String[] cmdLine = command.split(" ");
           processDisconnect(Short.parseShort(cmdLine[1]));
         } else if (command.startsWith("quit")) {
+          isReader.close();
+          br.close();
           processQuit();
         } else if (command.startsWith("attach ")) {
           String[] cmdLine = command.split(" ");
@@ -245,13 +248,10 @@ public class Router implements Node {
         } else {
           //invalid command
           Console.log("Invalid command", false);
-          break;
         }
         System.out.print("\n>> ");
         command = br.readLine();
       }
-      isReader.close();
-      br.close();
     } catch (
       Exception e) {
       e.printStackTrace();
