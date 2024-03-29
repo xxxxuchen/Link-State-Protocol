@@ -43,6 +43,7 @@ public class LinkStateDatabase {
     return lsa;
   }
 
+  // add a link description to its (router) own LSA, and increment the sequence number
   public void addLinkDescription(String neighborIP) {
     int portNum = router.getOutgoingPort(neighborIP);
     LinkDescription ld = new LinkDescription(neighborIP, portNum);
@@ -51,15 +52,17 @@ public class LinkStateDatabase {
     lsa.links.add(ld);
   }
 
-  public void updateLSA(LSA lsa) {
+  // add or update a given LSA in the database
+  public boolean updateLSA(LSA lsa) {
     if (_store.containsKey(lsa.linkStateID) &&
-      lsa.lsaSeqNumber.get() < _store.get(lsa.linkStateID).lsaSeqNumber.get()) {
-      return;
+      lsa.lsaSeqNumber.get() <= _store.get(lsa.linkStateID).lsaSeqNumber.get()) {
+      return false;
     }
     _store.put(lsa.linkStateID, lsa);
-    // TODO: adjust portNum if necessary
+    return true;
   }
 
+  // get all the connected neighbors which their status has already been set to TWO_WAY
   public RouterDescription[] getConnectedNeighbors() {
     LSA lsa = _store.get(router.getDescription().getSimulatedIP());
     ArrayList<RouterDescription> neighbors = new ArrayList<>();
@@ -74,10 +77,6 @@ public class LinkStateDatabase {
 
   public Vector<LSA> getAllLSAs() {
     return new Vector<>(_store.values());
-  }
-
-  public LSA getLSA(String linkStateID) {
-    return _store.get(linkStateID);
   }
 
 

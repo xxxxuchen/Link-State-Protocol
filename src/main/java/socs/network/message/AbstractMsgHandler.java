@@ -23,16 +23,16 @@ public abstract class AbstractMsgHandler implements MessageHandler {
 
   protected final void broadcastLSAUpdate() {
     RouterDescription[] allNeighbors = lsd.getConnectedNeighbors();
+    String log = "broadcast LSAUpdate to neighbors: ";
     for (RouterDescription neighbor : allNeighbors) {
       if (neighbor != null && broadcastCondition(neighbor)) {
-        Console.log(this + " sending to " + neighbor, true);
         SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(router.getDescription(), neighbor,
           lsd.getAllLSAs());
         router.sendPacket(lsaUpdatePacket, neighbor);
+        log += neighbor.getSimulatedIP() + " ";
       }
     }
-
-
+    Console.log(log, true);
   }
 
   protected abstract boolean broadcastCondition(RouterDescription neighbor);

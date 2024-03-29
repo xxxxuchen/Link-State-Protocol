@@ -3,8 +3,6 @@ package socs.network.message;
 import socs.network.node.LinkStateDatabase;
 import socs.network.node.Node;
 import socs.network.node.RouterDescription;
-import socs.network.node.RouterStatus;
-import socs.network.util.Console;
 
 public class LSAUpdateHandler extends AbstractMsgHandler {
 
@@ -18,12 +16,17 @@ public class LSAUpdateHandler extends AbstractMsgHandler {
   public void handleMessage(SOSPFPacket pkt) {
     this.packet = pkt;
     super.handleMessage(packet);
-    // update lsd
+    boolean isUpdate = false;
+    // update all lsd in its own link state database
     for (LSA lsa : packet.lsaArray) {
-      lsd.updateLSA(lsa);
+      if (lsd.updateLSA(lsa)) {
+        isUpdate = true;
+      }
     }
-    // broadcast the LSAUpdate packet to all connected neighbors except the one that sent the packet
-    broadcastLSAUpdate();
+    // broadcast the LSAUpdate packet to all connected neighbors if there is an LSA update
+    if (isUpdate) {
+      broadcastLSAUpdate();
+    }
   }
 
   @Override

@@ -28,7 +28,7 @@ public class RouterDescription {
     this.simulatedIPAddress = simulatedIPAddress;
   }
 
-  // factory method to create and reuse the router description with null status by default
+  // factory method to create the router description with null status by default
   public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
                                               String simulatedIPAddress) {
     return instances.computeIfAbsent(simulatedIPAddress, k -> new RouterDescription(processIPAddress, processPortNumber,
@@ -63,8 +63,8 @@ public class RouterDescription {
 
   @Override
   public String toString() {
-    return "Router{" +
-      ", simulatedIP='" + simulatedIPAddress + '\'' +
+    return "Router Information{" +
+      "simulatedIP='" + simulatedIPAddress + '\'' +
       ", processPort=" + processPortNumber +
       ", status=" + status +
       '}';

@@ -35,6 +35,7 @@ public class Router implements Node {
     String simulatedIP = config.getString("socs.network.router.ip");
     int processPort = config.getInt("socs.network.router.port");
     rd = RouterDescription.getInstance("127.0.0.1", processPort, simulatedIP);
+    Console.log(rd.toString(), false);
     lsd = new LinkStateDatabase(this);
     packetListener = new PacketListener();
     startListener();
@@ -180,7 +181,7 @@ public class Router implements Node {
     String neighbors = "";
     RouterDescription[] connectedNeighbors = lsd.getConnectedNeighbors();
     for (RouterDescription neighbor : connectedNeighbors) {
-      neighbors += neighbor.getSimulatedIP() + "\n";
+      neighbors += "\n" + neighbor.getSimulatedIP();
     }
     Console.log(neighbors, false);
   }

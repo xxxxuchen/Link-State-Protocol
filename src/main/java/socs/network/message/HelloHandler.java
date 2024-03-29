@@ -48,12 +48,14 @@ public class HelloHandler extends AbstractMsgHandler {
       } else if (attachedNeighbor.getStatus() == RouterStatus.NULL && packet.srcIP.equals(packet.neighborID)) {
         attachedNeighbor.setStatus(RouterStatus.TWO_WAY);
         Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to TWO_WAY", true);
+        // add this attached neighbor as a connected neighbor in lsa
         lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());
         sendBackHelloPacket();
         broadcastLSAUpdate();
       } else if (attachedNeighbor.getStatus().equals(RouterStatus.INIT) && packet.srcIP.equals(packet.neighborID)) {
         attachedNeighbor.setStatus(RouterStatus.TWO_WAY);
         Console.log("Set " + attachedNeighbor.getSimulatedIP() + " state to TWO_WAY", true);
+        // add this attached neighbor as a connected neighbor in lsa
         lsd.addLinkDescription(attachedNeighbor.getSimulatedIP());
         broadcastLSAUpdate();
       }
@@ -62,14 +64,17 @@ public class HelloHandler extends AbstractMsgHandler {
 
   @Override
   protected boolean broadcastCondition(RouterDescription neighbor) {
-    // no condition for broadcast
+    /*
+     no condition. router broadcasts the LSAUpdate packet to all the connected neighbors
+     if they have just received response of the Hello packet and set the neighbor status to TWO_WAY
+     */
     return true;
   }
 
   @Override
   public void handleAccept() {
     Console.log("You have accepted the request.", false);
-    // add the link
+    // add the link (attached neighbor) to the ports array
     Link link = new Link(router.getDescription(), originatedRouter);
     router.addLink(link);
     sendBackHelloPacket();
