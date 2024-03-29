@@ -23,7 +23,7 @@ public class LSAUpdateHandler extends AbstractMsgHandler {
         isUpdate = true;
       }
     }
-    // broadcast the LSAUpdate packet to all connected neighbors if there is an LSA update
+    // broadcast the LSAUpdate packet if there is an LSA update
     if (isUpdate) {
       broadcastLSAUpdate();
     }

@@ -26,6 +26,7 @@ public class HelloHandler extends AbstractMsgHandler {
       if (!packet.srcIP.equals(packet.neighborID)) {
         super.handleMessage(packet);
         Console.logOneLine("Do you accept this request?(Y/N)：");
+        Router.readingConfirmation = true;
       } else {
         // response of attach request from the target neighbor
         if (packet.neighborID.equals("-1")) {
@@ -65,8 +66,8 @@ public class HelloHandler extends AbstractMsgHandler {
   @Override
   protected boolean broadcastCondition(RouterDescription neighbor) {
     /*
-     no condition. router broadcasts the LSAUpdate packet to all the connected neighbors
-     if they have just received response of the Hello packet and set the neighbor status to TWO_WAY
+     no condition (send to all). Router broadcasts the LSAUpdate packet to all the connected neighbors
+     when they have just received a response Hello packet and set its neighbor status to TWO_WAY.
      */
     return true;
   }

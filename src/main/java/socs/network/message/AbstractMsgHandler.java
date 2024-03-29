@@ -21,6 +21,7 @@ public abstract class AbstractMsgHandler implements MessageHandler {
     Console.log("Received " + packetType + " packet from " + srcSimulatedIP, true);
   }
 
+  // broadcast LSAUpdate packet to connected neighbors according to the broadcast condition
   protected final void broadcastLSAUpdate() {
     RouterDescription[] allNeighbors = lsd.getConnectedNeighbors();
     String log = "broadcast LSAUpdate to neighbors: ";

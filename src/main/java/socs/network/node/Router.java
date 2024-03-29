@@ -30,6 +30,7 @@ public class Router implements Node {
 
   private final Object portsLock = new Object();
 
+  public static volatile boolean readingConfirmation = false;
 
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");
@@ -211,7 +212,14 @@ public class Router implements Node {
       System.out.print(">> ");
       String command = br.readLine();
       while (true) {
-        if (command.startsWith("detect ")) {
+        if (readingConfirmation) {
+          if (command.equals("Y") || command.equals("y")) {
+            handlers[0].handleAccept();
+          } else if (command.equals("N") || command.equals("n")) {
+            handlers[0].handleReject();
+          }
+          readingConfirmation = false;
+        } else if (command.startsWith("detect ")) {
           String[] cmdLine = command.split(" ");
           processDetect(cmdLine[1]);
         } else if (command.startsWith("disconnect ")) {
@@ -234,12 +242,9 @@ public class Router implements Node {
           //output neighbors
           processNeighbors();
           // for reading user confirmation on attach request
-        } else if (command.equals("Y") || command.equals("y")) {
-          handlers[0].handleAccept();
-        } else if (command.equals("N") || command.equals("n")) {
-          handlers[0].handleReject();
         } else {
           //invalid command
+          Console.log("Invalid command", false);
           break;
         }
         System.out.print("\n>> ");

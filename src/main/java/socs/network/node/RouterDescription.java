@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Encapsulates the information of a router.
- * RouterDescription is uniquely identified by simulatedIPAddress.
- * It applies the Flyweight pattern to ensure the uniqueness of RouterDescription object.
+ * Each RouterDescription object is uniquely identified by simulatedIPAddress.
+ * It applies the Flyweight pattern to map the simulatedIPAddress to a unique RouterDescription object.
  */
 
 public class RouterDescription {
@@ -35,7 +35,7 @@ public class RouterDescription {
       simulatedIPAddress));
   }
 
-  // map the simulated IP address to the corresponding unique RouterDescription instance
+  // map the simulated IP address to the corresponding unique RouterDescription object
   public static RouterDescription getInstance(String simulatedIPAddress) {
     return instances.get(simulatedIPAddress);
   }
@@ -63,11 +63,12 @@ public class RouterDescription {
 
   @Override
   public String toString() {
-    return "Router Information{" +
+    return "Router's Info{" +
       "simulatedIP='" + simulatedIPAddress + '\'' +
-      ", processPort=" + processPortNumber +
+      ", Port=" + processPortNumber +
       ", status=" + status +
-      '}';
+      '}' + "\n" +
+      "==============================================";
   }
 
   @Override
