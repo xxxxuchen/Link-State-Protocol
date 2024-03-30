@@ -5,7 +5,6 @@ import socs.network.node.Node;
 import socs.network.node.RouterDescription;
 
 public class LSAUpdateHandler extends AbstractMsgHandler {
-
   private SOSPFPacket packet;
 
   public LSAUpdateHandler(Node node, LinkStateDatabase lsd) {

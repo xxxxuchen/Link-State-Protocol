@@ -23,7 +23,7 @@ public class HelloHandler extends AbstractMsgHandler {
     // attach request
     if (attachedNeighbor == null) {
       // attach request is sent from the originated neighbor
-      if (!packet.srcIP.equals(packet.neighborID)) {
+      if (!packet.srcIP.equals(packet.neighborID) && !packet.neighborID.equals("-1")) {
         super.handleMessage(packet);
         Console.logOneLine("Do you accept this request?(Y/N)：");
         Router.readingConfirmation = true;

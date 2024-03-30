@@ -30,7 +30,9 @@ public class Router implements Node {
 
   private final Object portsLock = new Object();
 
-  public static volatile boolean readingConfirmation = false;
+  public static volatile boolean readingConfirmation = false; // indicate if it is asking for user confirm
+
+  public static boolean requestAccepted = false; // indicate if the attach request has been accepted
 
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");
@@ -87,6 +89,9 @@ public class Router implements Node {
   @Override
   public void addLink(Link link) {
     synchronized (portsLock) {
+      // addLink is called which means the request has been accepted
+      requestAccepted = true;
+      portsLock.notify();
       for (int i = 0; i < ports.length; i++) {
         if (ports[i] == null) {
           ports[i] = link;
@@ -159,8 +164,12 @@ public class Router implements Node {
   /**
    * broadcast Hello to all attached neighbors
    */
-  private void processStart() {
+  private void processStart() throws InterruptedException {
     synchronized (portsLock) {
+      while (!requestAccepted) {
+        // wait for the user to accept the request
+        portsLock.wait();
+      }
       for (Link link : ports) {
         if (link != null) {
           SOSPFPacket helloPacket =
@@ -179,7 +188,13 @@ public class Router implements Node {
    */
   private void processConnect(String processIP, short processPort,
                               String simulatedIP) {
-
+    this.processAttach(processIP, processPort, simulatedIP);
+    try {
+      // processStart will wait for the user to accept the request
+      this.processStart();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -244,7 +259,8 @@ public class Router implements Node {
         } else if (command.equals("start")) {
           Console.log("Starting the router", false);
           processStart();
-        } else if (command.equals("connect ")) {
+        } else if (command.startsWith("connect ")) {
+          System.out.println("connecting");
           String[] cmdLine = command.split(" ");
           processConnect(cmdLine[1], Short.parseShort(cmdLine[2]),
             cmdLine[3]);
@@ -253,8 +269,7 @@ public class Router implements Node {
           processNeighbors();
           // for reading user confirmation on attach request
         } else {
-          //invalid command
-          Console.log("Invalid command", false);
+          Console.log("Invalid command: " + command, false);
         }
         System.out.print("\n>> ");
         command = br.readLine();
