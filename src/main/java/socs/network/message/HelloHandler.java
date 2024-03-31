@@ -27,6 +27,7 @@ public class HelloHandler extends AbstractMsgHandler {
         super.handleMessage(packet);
         Console.logOneLine("Do you accept this request?(Y/N)：");
         Router.readingConfirmation = true;
+        router.addLink(null);
       } else {
         // response of attach request from the target neighbor
         if (packet.neighborID.equals("-1")) {

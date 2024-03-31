@@ -32,7 +32,7 @@ public class Router implements Node {
 
   public static volatile boolean readingConfirmation = false; // indicate if it is asking for user confirm
 
-  public static boolean requestAccepted = false; // indicate if the attach request has been accepted
+  private static AttachRequestStatus attachRequestStatus = AttachRequestStatus.NULL;
 
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");
@@ -76,8 +76,14 @@ public class Router implements Node {
   @Override
   public void addLink(Link link) {
     synchronized (portsLock) {
-      // addLink is called which means the request has been accepted
-      requestAccepted = true;
+      if (link == null) {
+        // the attach request has been rejected
+        attachRequestStatus = AttachRequestStatus.REJECTED;
+        portsLock.notify();
+        return;
+      }
+      // request has been accepted
+      attachRequestStatus = AttachRequestStatus.ACCEPTED;
       portsLock.notify();
       for (int i = 0; i < ports.length; i++) {
         if (ports[i] == null) {
@@ -173,9 +179,13 @@ public class Router implements Node {
    */
   private void processStart() throws InterruptedException {
     synchronized (portsLock) {
-      while (!requestAccepted) {
-        // wait for the user to accept the request
+      while (attachRequestStatus == AttachRequestStatus.NULL) {
+        // wait for the user to response the attach request
         portsLock.wait();
+      }
+      if (attachRequestStatus == AttachRequestStatus.REJECTED) {
+        Console.log("You cannot start the router before a successful attachment!", false);
+        return;
       }
       for (Link link : ports) {
         if (link != null) {
@@ -184,6 +194,7 @@ public class Router implements Node {
           sendPacket(helloPacket, link.router2);
         }
       }
+
     }
   }
 
