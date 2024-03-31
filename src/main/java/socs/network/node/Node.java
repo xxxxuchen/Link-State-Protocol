@@ -7,8 +7,6 @@ public interface Node {
 
   public int getOutgoingPort(String simulatedIP);
 
-  RouterDescription[] getAttachedNeighbors();
-
   public RouterDescription getAttachedNeighbor(String simulatedIP);
 
   public void addLink(Link link);

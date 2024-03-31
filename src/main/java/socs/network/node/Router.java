@@ -57,19 +57,6 @@ public class Router implements Node {
   }
 
   @Override
-  public RouterDescription[] getAttachedNeighbors() {
-    synchronized (portsLock) {
-      RouterDescription[] neighbors = new RouterDescription[ports.length];
-      for (int i = 0; i < ports.length; i++) {
-        if (ports[i] != null) {
-          neighbors[i] = ports[i].router2;
-        }
-      }
-      return neighbors;
-    }
-  }
-
-  @Override
   public RouterDescription getAttachedNeighbor(String simulatedIP) {
     synchronized (portsLock) {
       for (Link link : ports) {
