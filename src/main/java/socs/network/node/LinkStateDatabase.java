@@ -34,55 +34,55 @@ public class LinkStateDatabase {
   /**
    * output the shortest path from this router to the destination with the given IP address
    */
-public String getShortestPath(String destinationIP) {
-  Map<String, Integer> dist = new HashMap<>(); // Distance from source to each node
-  Map<String, String> prev = new HashMap<>(); // Previous node in optimal path from source
-  PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>((a, b) -> a.getValue() - b.getValue());
+  public String getShortestPath(String destinationIP) {
+    Map<String, Integer> dist = new HashMap<>(); // Distance from source to each node
+    Map<String, String> prev = new HashMap<>(); // Previous node in optimal path from source
+    PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>((a, b) -> a.getValue() - b.getValue());
 
-  // Initialize distances and priority queue
-  for (String ip : _store.keySet()) {
-    dist.put(ip, Integer.MAX_VALUE);
-    prev.put(ip, null);
-    pq.offer(new AbstractMap.SimpleEntry<>(ip, Integer.MAX_VALUE));
-  }
+    // Initialize distances and priority queue
+    for (String ip : _store.keySet()) {
+      dist.put(ip, Integer.MAX_VALUE);
+      prev.put(ip, null);
+      pq.offer(new AbstractMap.SimpleEntry<>(ip, Integer.MAX_VALUE));
+    }
 
-  // Set the distance for the starting router (itself) to 0
-  String startIP = router.getDescription().getSimulatedIP();
-  dist.put(startIP, 0);
-  pq.offer(new AbstractMap.SimpleEntry<>(startIP, 0));
+    // Set the distance for the starting router (itself) to 0
+    String startIP = router.getDescription().getSimulatedIP();
+    dist.put(startIP, 0);
+    pq.offer(new AbstractMap.SimpleEntry<>(startIP, 0));
 
-  while (!pq.isEmpty()) {
-    Map.Entry<String, Integer> entry = pq.poll();
-    String currentIP = entry.getKey();
-    int currentDist = entry.getValue();
+    while (!pq.isEmpty()) {
+      Map.Entry<String, Integer> entry = pq.poll();
+      String currentIP = entry.getKey();
+      int currentDist = entry.getValue();
 
-    // If we reached the destination or the smallest distance is INFINITY (unreachable), stop
-    if (currentIP.equals(destinationIP) || currentDist == Integer.MAX_VALUE) break;
+      // If we reached the destination or the smallest distance is INFINITY (unreachable), stop
+      if (currentIP.equals(destinationIP) || currentDist == Integer.MAX_VALUE) break;
 
-    LSA currentLSA = _store.get(currentIP);
-    for (LinkDescription ld : currentLSA.links) {
-      String neighborIP = ld.linkID;
-      int weight = 1; // Each hop has a weight of 1
-      if (dist.get(currentIP) + weight < dist.get(neighborIP)) {
-        dist.put(neighborIP, dist.get(currentIP) + weight);
-        prev.put(neighborIP, currentIP);
-        pq.offer(new AbstractMap.SimpleEntry<>(neighborIP, dist.get(neighborIP)));
+      LSA currentLSA = _store.get(currentIP);
+      for (LinkDescription ld : currentLSA.links) {
+        String neighborIP = ld.linkID;
+        int weight = 1; // Each hop has a weight of 1
+        if (dist.get(currentIP) + weight < dist.get(neighborIP)) {
+          dist.put(neighborIP, dist.get(currentIP) + weight);
+          prev.put(neighborIP, currentIP);
+          pq.offer(new AbstractMap.SimpleEntry<>(neighborIP, dist.get(neighborIP)));
+        }
       }
     }
-  }
 
-  // Reconstruct the path
-  if (dist.get(destinationIP) == Integer.MAX_VALUE) {
-    return "No path found"; // Destination is unreachable
-  }
+    // Reconstruct the path
+    if (dist.get(destinationIP) == Integer.MAX_VALUE) {
+      return "No path found"; // Destination is unreachable
+    }
 
-  LinkedList<String> path = new LinkedList<>();
-  for (String at = destinationIP; at != null; at = prev.get(at)) {
-    path.addFirst(at);
-  }
+    LinkedList<String> path = new LinkedList<>();
+    for (String at = destinationIP; at != null; at = prev.get(at)) {
+      path.addFirst(at);
+    }
 
-  return String.join(" -> ", path);
-}
+    return String.join(" -> ", path);
+  }
 
 
   //initialize the link state database by adding an entry about the router itself
@@ -102,6 +102,20 @@ public String getShortestPath(String destinationIP) {
     lsa.links.add(ld);
   }
 
+  /**
+   * remove the link description of its connected neighbor from its own LSA, and increment the sequence number
+   * it also removes the link description of itself from the neighbor's LSA, and increment the sequence number
+   */
+  public void removeLinkDescriptions(String neighborIP) {
+    LSA lsa = _store.get(router.getDescription().getSimulatedIP());
+    lsa.lsaSeqNumber.incrementAndGet();
+    lsa.links.removeIf(ld -> ld.linkID.equals(neighborIP));
+    // update the neighbor's LSA
+    LSA neighborLSA = _store.get(neighborIP);
+    neighborLSA.lsaSeqNumber.incrementAndGet();
+    neighborLSA.links.removeIf(ld -> ld.linkID.equals(router.getDescription().getSimulatedIP()));
+  }
+
   // add or update a given LSA in the database
   public boolean updateLSA(LSA lsa) {
     if (_store.containsKey(lsa.linkStateID) &&
@@ -109,7 +123,7 @@ public String getShortestPath(String destinationIP) {
       return false;
     }
     _store.put(lsa.linkStateID, lsa);
-    return true;
+    return true; // means there is an update in the database
   }
 
   // get all the connected neighbors which their status has already been set to TWO_WAY

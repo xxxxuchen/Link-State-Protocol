@@ -22,7 +22,7 @@ public abstract class AbstractMsgHandler implements MessageHandler {
   }
 
   // broadcast LSAUpdate packet to connected neighbors according to the broadcast condition
-  protected final void broadcastLSAUpdate() {
+  public final void broadcastLSAUpdate() {
     RouterDescription[] allNeighbors = lsd.getConnectedNeighbors();
     String log = "broadcast LSAUpdate to neighbors: ";
     for (RouterDescription neighbor : allNeighbors) {

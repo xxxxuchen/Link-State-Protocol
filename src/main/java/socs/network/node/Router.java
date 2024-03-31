@@ -112,12 +112,12 @@ public class Router implements Node {
   private void processDetect(String destinationIP) {
     // Ensure the destination IP is not the router's own IP
     if (destinationIP.equals(this.rd.getSimulatedIP())) {
-      System.out.println("The destination IP matches the router's own IP.");
+      Console.log("The destination IP matches the router's own IP.", false);
       return;
     }
 
     String path = lsd.getShortestPath(destinationIP);
-    System.out.println("Shortest path to " + destinationIP + ": " + path);
+    Console.log(path, false);
   }
 
   /**
@@ -126,8 +126,29 @@ public class Router implements Node {
    *
    * @param portNumber the port number which the link attaches at
    */
-  private void processDisconnect(short portNumber) {
-
+  private void processDisconnect(int portNumber) {
+    synchronized (portsLock) {
+      if (portNumber < 0 || portNumber >= ports.length) {
+        Console.log("Invalid neighbor", false);
+        return;
+      }
+      if (ports[portNumber] == null) {
+        Console.log("No link exists at port " + portNumber, false);
+        return;
+      }
+      // remove its neighbor's link description from its own LSA and remove its own link description from the
+      // neighbor's LSA
+      lsd.removeLinkDescriptions(ports[portNumber].router2.getSimulatedIP());
+      // send the LSAUpdate packet to all neighbors to synchronize the changes
+      for (Link link : ports) {
+        if (link != null) {
+          SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(rd, link.router2, lsd.getAllLSAs());
+          sendPacket(lsaUpdatePacket, link.router2);
+        }
+      }
+      // remove the attached link from the ports array
+      ports[portNumber] = null;
+    }
   }
 
   /**
@@ -156,7 +177,6 @@ public class Router implements Node {
     // send the HELLO packet to the remote router
     RouterDescription attachedRouter = RouterDescription.getInstance(processIP, processPort, simulatedIP);
     SOSPFPacket helloPacket = PacketFactory.createHelloPacket(rd, attachedRouter, simulatedIP);
-
     sendPacket(helloPacket, attachedRouter);
   }
 
@@ -214,7 +234,7 @@ public class Router implements Node {
   private void processQuit() {
     // stop all running thread
     packetListener.terminate();
-    // TODO: send the lsa update to all neighbors
+    // TODO: synchronization
 
     System.exit(0);
   }
@@ -236,6 +256,7 @@ public class Router implements Node {
       String command = br.readLine();
       while (true) {
         if (readingConfirmation) {
+          // reading user confirmation on attach request
           if (command.equals("Y") || command.equals("y")) {
             handlers[0].handleAccept();
           } else if (command.equals("N") || command.equals("n")) {
@@ -247,7 +268,8 @@ public class Router implements Node {
           processDetect(cmdLine[1]);
         } else if (command.startsWith("disconnect ")) {
           String[] cmdLine = command.split(" ");
-          processDisconnect(Short.parseShort(cmdLine[1]));
+          int portNumber = getOutgoingPort(cmdLine[1]);
+          processDisconnect(portNumber);
         } else if (command.startsWith("quit")) {
           isReader.close();
           br.close();
@@ -267,7 +289,6 @@ public class Router implements Node {
         } else if (command.equals("neighbors")) {
           //output neighbors
           processNeighbors();
-          // for reading user confirmation on attach request
         } else {
           Console.log("Invalid command: " + command, false);
         }
