@@ -32,7 +32,7 @@ public class Router implements Node {
 
   public static volatile boolean readingConfirmation = false; // indicate if it is asking for user confirm
 
-  private static AttachRequestStatus attachRequestStatus = AttachRequestStatus.NULL;
+  private AttachRequestStatus attachRequestStatus = AttachRequestStatus.NULL;
 
   public Router(Configuration config) {
     String simulatedIP = config.getString("socs.network.router.ip");

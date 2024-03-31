@@ -27,11 +27,11 @@ public class HelloHandler extends AbstractMsgHandler {
         super.handleMessage(packet);
         Console.logOneLine("Do you accept this request?(Y/N)：");
         Router.readingConfirmation = true;
-        router.addLink(null);
       } else {
         // response of attach request from the target neighbor
         if (packet.neighborID.equals("-1")) {
           Console.log("The request has been rejected.", true);
+          router.addLink(null); // indicate a rejected attachment
         } else {
           Console.log("The request has been accepted.", true);
           RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1",
