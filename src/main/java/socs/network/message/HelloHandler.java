@@ -90,6 +90,7 @@ public class HelloHandler extends AbstractMsgHandler {
     router.sendPacket(packet, originatedRouter);
   }
 
+  // send the hello packet back to the neighbor
   private void sendBackHelloPacket() {
     // send the hello packet back to the neighbor
     // set the neighbor id field to its own simulated IP to indicate it's a response message

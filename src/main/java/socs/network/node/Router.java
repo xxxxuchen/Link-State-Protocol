@@ -9,10 +9,6 @@ import socs.network.util.Console;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The instance of Router class can be shared by multiple channel threads
@@ -117,11 +113,9 @@ public class Router implements Node {
       if (ports[portNumber] == null) {
         return;
       }
-      // set the neighbor's status back to NULL
-      RouterDescription neighbor = RouterDescription.getInstance(ports[portNumber].router2.getSimulatedIP());
-      if (neighbor != null) {
-        neighbor.setStatus(RouterStatus.NULL);
-      }
+      // reset the neighbor's status, this is necessary because the lifetime of this RouterDescription instance
+      // is the same as the router's lifetime, and this connection might be re-established in the future
+      ports[portNumber].router2.setStatus(RouterStatus.NULL);
       // reset the attach request status
       attachRequestStatus = AttachRequestStatus.NULL;
       ports[portNumber] = null;
@@ -383,8 +377,7 @@ public class Router implements Node {
 
   private class PacketListener extends Thread {
 
-    private final List<Thread> ChannelThreads = new ArrayList<>();
-    //    private final Map<SocketClient, Thread> channelMap = new ConcurrentHashMap<>();
+    private final ArrayList<Thread> ChannelThreads = new ArrayList<>();
     private final SocketServer serverSocket = new SocketServer(rd.getProcessPort());
 
     @Override

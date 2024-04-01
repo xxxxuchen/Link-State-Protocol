@@ -31,8 +31,8 @@ public class RouterDescription {
   // factory method to create the router description with null status by default
   public static RouterDescription getInstance(String processIPAddress, int processPortNumber,
                                               String simulatedIPAddress) {
-    return instances.computeIfAbsent(simulatedIPAddress, k -> new RouterDescription(processIPAddress, processPortNumber,
-      simulatedIPAddress));
+    return instances.computeIfAbsent(simulatedIPAddress, k -> new RouterDescription(processIPAddress,
+      processPortNumber, simulatedIPAddress));
   }
 
   // map the simulated IP address to the corresponding unique RouterDescription object

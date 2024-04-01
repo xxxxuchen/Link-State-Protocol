@@ -122,7 +122,7 @@ public class LinkStateDatabase {
     // it is triggered by the processDisconnect and processQuit
     if (lsa.linkStateID.equals(router.getDescription().getSimulatedIP())) {
       RouterDescription[] attachedNeighbors = router.getAttachedNeighbors();
-      // find the removed link, use the stream method
+      // find the removed link
       for (RouterDescription rd : attachedNeighbors) {
         if (lsa.links.stream().noneMatch(ld -> ld.linkID.equals(rd.getSimulatedIP()))) {
           router.removeAttachedLink(router.getOutgoingPort(rd.getSimulatedIP()));
@@ -148,7 +148,6 @@ public class LinkStateDatabase {
   public Vector<LSA> getAllLSAs() {
     return new Vector<>(_store.values());
   }
-
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
