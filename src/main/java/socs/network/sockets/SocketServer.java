@@ -15,7 +15,7 @@ public class SocketServer {
     }
   }
 
-  public synchronized SocketClient accept() {
+  public SocketClient accept() {
     try {
       Socket socket = serverSocket.accept();
       return new SocketClient(socket);
@@ -25,7 +25,7 @@ public class SocketServer {
     return null;
   }
 
-  public synchronized void close() {
+  public void close() {
     try {
       serverSocket.close();
     } catch (Exception e) {

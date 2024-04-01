@@ -1,5 +1,6 @@
 socs/network/sockets/SocketClient.class
 socs/network/message/MessageHandler.class
+socs/network/node/AttachRequestStatus.class
 socs/network/node/Router$1.class
 socs/network/sockets/SocketServer.class
 socs/network/util/Console.class

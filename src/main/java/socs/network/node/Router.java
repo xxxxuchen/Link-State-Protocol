@@ -10,7 +10,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The instance of Router class can be shared by multiple channel threads
@@ -42,7 +44,7 @@ public class Router implements Node {
     Console.log(rd.toString(), false);
     lsd = new LinkStateDatabase(this);
     packetListener = new PacketListener();
-    startListener();
+    packetListener.start();
   }
 
   @Override
@@ -230,54 +232,68 @@ public class Router implements Node {
   /**
    * disconnect with all neighbors and quit the program
    */
+  /*
   private void processQuit() {
     Console.log("Initiating router shutdown process.", false);
 
     SOSPFPacket departurePacket = new SOSPFPacket();
     departurePacket.srcIP = rd.getSimulatedIP();
-    departurePacket.sospfType = 1; 
+    departurePacket.sospfType = 1;
     departurePacket.lsaArray = new Vector<LSA>(lsd.getAllLSAs());
+    //
 
     // Remove the link descriptions from LSD for all connected neighbors before sending departure packets
     synchronized (portsLock) {
-        for (Link link : ports) {
-            if (link != null && link.router2 != null) {
-                // Remove the link description from the LSD
-                lsd.removeLinkDescriptions(link.router2.getSimulatedIP());
+      for (Link link : ports) {
+        if (link != null && link.router2 != null) {
+          // Remove the link description from the LSD
+          lsd.removeLinkDescriptions(link.router2.getSimulatedIP());
 
-                // Then, attempt to notify the neighbor of departure
-                try {
-                    SocketClient client = new SocketClient(link.router2.getProcessIP(), link.router2.getProcessPort());
-                    client.send(departurePacket);
-                    client.close();
-                } catch (Exception e) {
-                    Console.log("Failed to send departure packet to " + link.router2.getSimulatedIP(), false);
-                }
-            }
+          // Then, attempt to notify the neighbor of departure
+          try {
+            SocketClient client = new SocketClient(link.router2.getProcessIP(), link.router2.getProcessPort());
+            client.send(departurePacket);
+            client.close();
+          } catch (Exception e) {
+            Console.log("Failed to send departure packet to " + link.router2.getSimulatedIP(), false);
+          }
         }
+      }
     }
 
     // Clear the ports to signify no longer connected to any neighbors
     for (int i = 0; i < ports.length; i++) {
-        ports[i] = null;
+      ports[i] = null;
     }
     // Terminate the packet listener and interrupt all channel threads
     packetListener.terminate();
 
     Console.log("Router has been successfully shut down.", false);
     System.exit(0);
-}
-
-
-
-
-  private void startListener() {
-    // register hello message handler
-    handlers[0] = new HelloHandler(this, lsd);
-    // register LSAUpdate message handler
-    handlers[1] = new LSAUpdateHandler(this, lsd);
-    packetListener.start();
   }
+   */
+  private void processQuit() {
+    // remove the link descriptions from LSD for all connected neighbors
+    synchronized (portsLock) {
+      for (Link link : ports) {
+        if (link != null) {
+          lsd.removeLinkDescriptions(link.router2.getSimulatedIP());
+        }
+      }
+      // send the LSAUpdate packet to all neighbors after the lsd has updated all the link changes
+      for (Link link : ports) {
+        if (link != null) {
+          SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(rd, link.router2, lsd.getAllLSAs());
+          sendPacket(lsaUpdatePacket, link.router2);
+        }
+      }
+    }
+    // Terminate the packet listener and interrupt all channel threads
+    packetListener.terminate();
+    Console.log("Successfully shut down the router.", false);
+    System.exit(0);
+  }
+
 
   public void terminal() {
     try {
@@ -335,6 +351,7 @@ public class Router implements Node {
   private class PacketListener extends Thread {
 
     private final List<Thread> ChannelThreads = new ArrayList<>();
+    //    private final Map<SocketClient, Thread> channelMap = new ConcurrentHashMap<>();
     private final SocketServer serverSocket = new SocketServer(rd.getProcessPort());
 
     @Override
@@ -356,12 +373,21 @@ public class Router implements Node {
       }
     }
 
+    @Override
+    public void start() {
+      // register hello message handler
+      handlers[0] = new HelloHandler(Router.this, lsd);
+      // register LSAUpdate message handler
+      handlers[1] = new LSAUpdateHandler(Router.this, lsd);
+      super.start();
+    }
+
     public void terminate() {
+      serverSocket.close();
       this.interrupt();
       for (Thread channel : ChannelThreads) {
         channel.interrupt();
       }
-      // serverSocket.close();
 
     }
   }
