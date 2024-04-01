@@ -31,14 +31,14 @@ public class HelloHandler extends AbstractMsgHandler {
         // response of attach request from the target neighbor
         if (packet.neighborID.equals("-1")) {
           Console.log("The request has been rejected.", true);
-          router.addLink(null); // indicate a rejected attachment
+          router.addAttachedLink(null); // indicate a rejected attachment
         } else {
           Console.log("The request has been accepted.", true);
           RouterDescription targetRouter = RouterDescription.getInstance("127.0.0.1",
             packet.srcProcessPort, packet.srcIP);
           // add the link
           Link link = new Link(router.getDescription(), targetRouter);
-          router.addLink(link);
+          router.addAttachedLink(link);
         }
       }
     } else { // start request
@@ -78,7 +78,7 @@ public class HelloHandler extends AbstractMsgHandler {
     Console.log("You have accepted the request.", false);
     // add the link (attached neighbor) to the ports array
     Link link = new Link(router.getDescription(), originatedRouter);
-    router.addLink(link);
+    router.addAttachedLink(link);
     sendBackHelloPacket();
   }
 

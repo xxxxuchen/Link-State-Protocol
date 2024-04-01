@@ -9,7 +9,11 @@ public interface Node {
 
   public RouterDescription getAttachedNeighbor(String simulatedIP);
 
-  public void addLink(Link link);
+  public RouterDescription[] getAttachedNeighbors();
+
+  public void addAttachedLink(Link link);
+
+  public void removeAttachedLink(int portNumber);
 
   public RouterDescription getDescription();
 

@@ -3,13 +3,7 @@ package socs.network.node;
 import socs.network.message.LSA;
 import socs.network.message.LinkDescription;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Vector;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -123,6 +117,18 @@ public class LinkStateDatabase {
       return false;
     }
     _store.put(lsa.linkStateID, lsa);
+
+    // update the ports array if this LSA is the router itself and there is a removed link
+    // it is triggered by the processDisconnect and processQuit
+    if (lsa.linkStateID.equals(router.getDescription().getSimulatedIP())) {
+      RouterDescription[] attachedNeighbors = router.getAttachedNeighbors();
+      // find the removed link, use the stream method
+      for (RouterDescription rd : attachedNeighbors) {
+        if (lsa.links.stream().noneMatch(ld -> ld.linkID.equals(rd.getSimulatedIP()))) {
+          router.removeAttachedLink(router.getOutgoingPort(rd.getSimulatedIP()));
+        }
+      }
+    }
     return true; // means there is an update in the database
   }
 

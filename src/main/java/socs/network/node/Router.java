@@ -72,12 +72,25 @@ public class Router implements Node {
   }
 
   @Override
+  public RouterDescription[] getAttachedNeighbors() {
+    synchronized (portsLock) {
+      ArrayList<RouterDescription> neighbors = new ArrayList<>();
+      for (int i = 0; i < ports.length; i++) {
+        if (ports[i] != null) {
+          neighbors.add(ports[i].router2);
+        }
+      }
+      return neighbors.toArray(new RouterDescription[0]);
+    }
+  }
+
+  @Override
   public RouterDescription getDescription() {
     return rd;
   }
 
   @Override
-  public void addLink(Link link) {
+  public void addAttachedLink(Link link) {
     synchronized (portsLock) {
       if (link == null) {
         // the attach request has been rejected
@@ -87,16 +100,33 @@ public class Router implements Node {
       }
       // request has been accepted
       attachRequestStatus = AttachRequestStatus.ACCEPTED;
-      portsLock.notify();
       for (int i = 0; i < ports.length; i++) {
         if (ports[i] == null) {
           ports[i] = link;
           break;
         }
       }
+      portsLock.notifyAll();
     }
   }
 
+  // remove the attached link and also reset all the related status of this router
+  @Override
+  public void removeAttachedLink(int portNumber) {
+    synchronized (portsLock) {
+      if (ports[portNumber] == null) {
+        return;
+      }
+      // set the neighbor's status back to NULL
+      RouterDescription neighbor = RouterDescription.getInstance(ports[portNumber].router2.getSimulatedIP());
+      if (neighbor != null) {
+        neighbor.setStatus(RouterStatus.NULL);
+      }
+      // reset the attach request status
+      attachRequestStatus = AttachRequestStatus.NULL;
+      ports[portNumber] = null;
+    }
+  }
 
   /**
    * output the shortest path to the given destination ip
@@ -143,7 +173,7 @@ public class Router implements Node {
         }
       }
       // remove the attached link from the ports array
-      ports[portNumber] = null;
+      removeAttachedLink(portNumber);
     }
   }
 
@@ -197,7 +227,6 @@ public class Router implements Node {
           sendPacket(helloPacket, link.router2);
         }
       }
-
     }
   }
 
@@ -290,6 +319,10 @@ public class Router implements Node {
     }
     // Terminate the packet listener and interrupt all channel threads
     packetListener.terminate();
+    // remove all the attached links
+    for (int i = 0; i < ports.length; i++) {
+      removeAttachedLink(i);
+    }
     Console.log("Successfully shut down the router.", false);
     System.exit(0);
   }
