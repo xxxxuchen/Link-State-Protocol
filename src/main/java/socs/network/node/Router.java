@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * The instance of Router class can be shared by multiple channel threads
@@ -230,12 +231,44 @@ public class Router implements Node {
    * disconnect with all neighbors and quit the program
    */
   private void processQuit() {
-    // stop all running thread
-    packetListener.terminate();
-    // TODO: synchronization
+    Console.log("Initiating router shutdown process.", false);
 
+    SOSPFPacket departurePacket = new SOSPFPacket();
+    departurePacket.srcIP = rd.getSimulatedIP();
+    departurePacket.sospfType = 1; 
+    departurePacket.lsaArray = new Vector<LSA>(lsd.getAllLSAs());
+
+    // Remove the link descriptions from LSD for all connected neighbors before sending departure packets
+    synchronized (portsLock) {
+        for (Link link : ports) {
+            if (link != null && link.router2 != null) {
+                // Remove the link description from the LSD
+                lsd.removeLinkDescriptions(link.router2.getSimulatedIP());
+
+                // Then, attempt to notify the neighbor of departure
+                try {
+                    SocketClient client = new SocketClient(link.router2.getProcessIP(), link.router2.getProcessPort());
+                    client.send(departurePacket);
+                    client.close();
+                } catch (Exception e) {
+                    Console.log("Failed to send departure packet to " + link.router2.getSimulatedIP(), false);
+                }
+            }
+        }
+    }
+
+    // Clear the ports to signify no longer connected to any neighbors
+    for (int i = 0; i < ports.length; i++) {
+        ports[i] = null;
+    }
+    // Terminate the packet listener and interrupt all channel threads
+    packetListener.terminate();
+
+    Console.log("Router has been successfully shut down.", false);
     System.exit(0);
-  }
+}
+
+
 
 
   private void startListener() {
@@ -324,11 +357,12 @@ public class Router implements Node {
     }
 
     public void terminate() {
-      serverSocket.close();
       this.interrupt();
       for (Thread channel : ChannelThreads) {
         channel.interrupt();
       }
+      // serverSocket.close();
+
     }
   }
 }
