@@ -9,6 +9,7 @@ import socs.network.util.Console;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The instance of Router class can be shared by multiple channel threads
@@ -222,6 +223,7 @@ public class Router implements Node {
         }
       }
     }
+
   }
 
   /**
@@ -232,6 +234,7 @@ public class Router implements Node {
    */
   private void processConnect(String processIP, short processPort,
                               String simulatedIP) {
+    attachRequestStatus = AttachRequestStatus.NULL;
     this.processAttach(processIP, processPort, simulatedIP);
     try {
       // processStart will wait for the user to accept the request

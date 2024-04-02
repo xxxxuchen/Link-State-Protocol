@@ -66,7 +66,7 @@ public class LinkStateDatabase {
     }
 
     // Reconstruct the path
-    if (dist.get(destinationIP) == Integer.MAX_VALUE) {
+    if (dist.get(destinationIP) == null || dist.get(destinationIP) == Integer.MAX_VALUE) {
       return "No path found"; // Destination is unreachable
     }
 
