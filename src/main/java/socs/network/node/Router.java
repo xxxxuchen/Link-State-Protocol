@@ -123,6 +123,18 @@ public class Router implements Node {
     }
   }
 
+  private void broadcastPacket(short type) {
+    synchronized (portsLock) {
+      for (Link link : ports) {
+        if (link != null) {
+          SOSPFPacket pkt = type == 0 ? PacketFactory.createHelloPacket(rd, link.router2, link.router2.getSimulatedIP())
+            : PacketFactory.createLSAUpdatePacket(rd, link.router2, lsd.getAllLSAs());
+          sendPacket(pkt, link.router2);
+        }
+      }
+    }
+  }
+
   /**
    * output the shortest path to the given destination ip
    * <p/>
@@ -161,12 +173,7 @@ public class Router implements Node {
       // neighbor's LSA
       lsd.removeLinkDescriptions(ports[portNumber].router2.getSimulatedIP());
       // send the LSAUpdate packet to all neighbors to synchronize the changes
-      for (Link link : ports) {
-        if (link != null) {
-          SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(rd, link.router2, lsd.getAllLSAs());
-          sendPacket(lsaUpdatePacket, link.router2);
-        }
-      }
+      broadcastPacket(PacketFactory.LSAUPDATE);
       // remove the attached link from the ports array
       removeAttachedLink(portNumber);
     }
@@ -180,18 +187,14 @@ public class Router implements Node {
    */
   private void processAttach(String processIP, short processPort,
                              String simulatedIP) {
-    if (simulatedIP.equals(rd.getSimulatedIP())) {
-      Console.log("Cannot attach to itself", false);
-      return;
-    }
-
     synchronized (portsLock) {
-      // check if the link already exists
-      for (Link link : ports) {
-        if (link != null && link.router2.getSimulatedIP().equals(simulatedIP)) {
-          Console.log("Link already exists", false);
-          return;
-        }
+      boolean linkExist =
+        Arrays.stream(ports).anyMatch(link -> link != null && link.router2.getSimulatedIP().equals(simulatedIP));
+      if (simulatedIP.equals(rd.getSimulatedIP()) || linkExist) {
+        Console.log("link already exists", false);
+        attachRequestStatus = AttachRequestStatus.REJECTED;
+        portsLock.notify();
+        return;
       }
     }
 
@@ -201,11 +204,20 @@ public class Router implements Node {
     sendPacket(helloPacket, attachedRouter);
   }
 
-
   /**
    * broadcast Hello to all attached neighbors
    */
-  private void processStart() throws InterruptedException {
+  private void processStart() {
+    synchronized (portsLock) {
+      if (attachRequestStatus != AttachRequestStatus.ACCEPTED) {
+        Console.log("You cannot start the router before a successful attachment!", false);
+        return;
+      }
+      broadcastPacket(PacketFactory.HELLO);
+    }
+  }
+
+  private void startSynchronously() throws InterruptedException {
     synchronized (portsLock) {
       while (attachRequestStatus == AttachRequestStatus.NULL) {
         // wait for the user to response the attach request
@@ -215,15 +227,8 @@ public class Router implements Node {
         Console.log("You cannot start the router before a successful attachment!", false);
         return;
       }
-      for (Link link : ports) {
-        if (link != null) {
-          SOSPFPacket helloPacket =
-            PacketFactory.createHelloPacket(rd, link.router2, link.router2.getSimulatedIP());
-          sendPacket(helloPacket, link.router2);
-        }
-      }
+      broadcastPacket(PacketFactory.HELLO);
     }
-
   }
 
   /**
@@ -238,7 +243,7 @@ public class Router implements Node {
     this.processAttach(processIP, processPort, simulatedIP);
     try {
       // processStart will wait for the user to accept the request
-      this.processStart();
+      this.startSynchronously();
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
@@ -307,12 +312,7 @@ public class Router implements Node {
         }
       }
       // send the LSAUpdate packet to all neighbors after the lsd has updated all the link changes
-      for (Link link : ports) {
-        if (link != null) {
-          SOSPFPacket lsaUpdatePacket = PacketFactory.createLSAUpdatePacket(rd, link.router2, lsd.getAllLSAs());
-          sendPacket(lsaUpdatePacket, link.router2);
-        }
-      }
+      broadcastPacket(PacketFactory.LSAUPDATE);
     }
     // Terminate the packet listener and interrupt all channel threads
     packetListener.terminate();
