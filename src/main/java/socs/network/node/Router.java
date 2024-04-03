@@ -123,6 +123,7 @@ public class Router implements Node {
     }
   }
 
+  // broadcast the packet according to type to all the attached neighbors
   private void broadcastPacket(short type) {
     synchronized (portsLock) {
       for (Link link : ports) {
@@ -311,10 +312,10 @@ public class Router implements Node {
           lsd.removeLinkDescriptions(link.router2.getSimulatedIP());
         }
       }
-      // send the LSAUpdate packet to all neighbors after the lsd has updated all the link changes
-      broadcastPacket(PacketFactory.LSAUPDATE);
     }
-    // Terminate the packet listener and interrupt all channel threads
+    // send the LSAUpdate packet to all neighbors after the lsd has updated all the link changes
+    broadcastPacket(PacketFactory.LSAUPDATE);
+    // terminate the packet listener and all channel threads
     packetListener.terminate();
     // remove all the attached links
     for (int i = 0; i < ports.length; i++) {
@@ -337,7 +338,7 @@ public class Router implements Node {
           if (command.equals("Y") || command.equals("y")) {
             handlers[0].handleAccept();
           } else if (command.equals("N") || command.equals("n")) {
-            handlers[0].handleReject();
+            handlers[0].handleReject("You have rejected the attach request.");
           }
           readingConfirmation = false;
         } else if (command.startsWith("detect ")) {

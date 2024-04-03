@@ -5,5 +5,5 @@ public interface MessageHandler {
 
   public void handleAccept();
 
-  public void handleReject();
+  public void handleReject(String msg);
 }

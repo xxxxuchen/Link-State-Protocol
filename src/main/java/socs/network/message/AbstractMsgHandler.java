@@ -42,7 +42,7 @@ public abstract class AbstractMsgHandler implements MessageHandler {
     // empty implementation
   }
 
-  public void handleReject() {
+  public void handleReject(String msg) {
     // empty implementation
   }
 }

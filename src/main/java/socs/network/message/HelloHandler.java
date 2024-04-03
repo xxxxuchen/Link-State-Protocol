@@ -25,6 +25,10 @@ public class HelloHandler extends AbstractMsgHandler {
       // attach request is sent from the originated neighbor
       if (!packet.srcIP.equals(packet.neighborID) && !packet.neighborID.equals("-1")) {
         super.handleMessage(packet);
+        if (router.getAttachedNeighbors().length >= 4) {
+          handleReject("Reject: The router has reached the maximum number of attached neighbors.");
+          return;
+        }
         Console.logOneLine("Do you accept this request?(Y/N)：");
         Router.readingConfirmation = true;
       } else {
@@ -83,8 +87,8 @@ public class HelloHandler extends AbstractMsgHandler {
   }
 
   @Override
-  public void handleReject() {
-    Console.log("You have rejected the request.", false);
+  public void handleReject(String msg) {
+    Console.log(msg, false);
     // set the neighbor id field to -1, indicating the request is rejected
     packet.neighborID = "-1";
     router.sendPacket(packet, originatedRouter);
