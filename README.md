@@ -28,10 +28,54 @@ socs.network.router.port=300X
 **Connecting Routers (attach and start):** By following the same diagram provided in the handout we need to run the following (after initializing routers):
 ![Router Layout](images/layout.png)
 
-- **TERMINAL 1:** `connect`
-- **TERMINAL 2:** ``
-- **......**
-- **TERMINAL 7:** ``
+- **TERMINAL 1:**
+  - `connect 127.0.0.1 3002 192.168.1.2`
+  - `connect 127.0.0.1 3006 192.168.1.6`
+  - `connect 127.0.0.1 3007 192.168.1.7`
+- **TERMINAL 2:**
+  - `connect 127.0.0.1 3003 192.168.1.3`
+- **TERMINAL 3:**
+  - `connect 127.0.0.1 3004 192.168.1.4`
+- **TERMINAL 4:**
+  - `connect 127.0.0.1 3005 192.168.1.5`
+  - `connect 127.0.0.1 3006 192.168.1.6`
+- **TERMINAL 5:**
+  - `connect 127.0.0.1 3007 192.168.1.7`
+
+**Neighbors:** You can run `neighbors` in any terminal to see the attached routers:
+For example, in terminal 1 (Router 1):
+
+```
+>> neighbors
+
+  Port  IP address
+  3002  192.168.1.2
+  3006  192.168.1.6
+  3007  192.168.1.7
+```
+
+**Shortest Distance:** To find the shortest distance from any router to any other router simply call the `detect` command.
+For example, from **Terminal 1 (Router 1)** we detect for router 5:
+
+```
+>> detect 192.168.1.5
+192.168.1.1 -> 192.168.1.7 -> 192.168.1.5
+```
+
+As expected, it chooses the shortest path through router 7 instead of going through 6-4 nor routers 2-4.
+
+**Disconnecting A Router:**
+We use scenarios similar to those described in the handout.
+
+- **Router 7 Disconnects from Router 1**:
+
+  - Call `disconnect 192.168.1.1` from Terminal 7.
+  - Call `neighbors` from **Terminal 5** to see if 7 is still (it should be!)
+  - Try calling `detect 192.168.1.5` from **Terminal 1** again now:
+
+- **Router 6 Disconnects from Network**:
+  - Call `disconnect 192.168.1.1` from Terminal 7.
+  - Try calling `detect 192.168.1.5` from **Terminal 1** again now:
 
 ## `attach` Command
 
