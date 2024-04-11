@@ -6,6 +6,7 @@ import socs.network.node.RouterDescription;
 import socs.network.util.Console;
 
 public abstract class AbstractMsgHandler implements MessageHandler {
+
   protected final Node router;
   protected final LinkStateDatabase lsd;
 

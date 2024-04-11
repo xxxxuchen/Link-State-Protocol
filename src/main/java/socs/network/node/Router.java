@@ -103,7 +103,7 @@ public class Router implements Node {
           break;
         }
       }
-      portsLock.notifyAll();
+      portsLock.notify();
     }
   }
 
@@ -128,7 +128,8 @@ public class Router implements Node {
     synchronized (portsLock) {
       for (Link link : ports) {
         if (link != null) {
-          SOSPFPacket pkt = type == 0 ? PacketFactory.createHelloPacket(rd, link.router2, link.router2.getSimulatedIP())
+          SOSPFPacket pkt = type == 0 ?
+            PacketFactory.createHelloPacket(rd, link.router2, link.router2.getSimulatedIP())
             : PacketFactory.createLSAUpdatePacket(rd, link.router2, lsd.getAllLSAs());
           sendPacket(pkt, link.router2);
         }
@@ -264,46 +265,6 @@ public class Router implements Node {
   /**
    * disconnect with all neighbors and quit the program
    */
-  /*
-  private void processQuit() {
-    Console.log("Initiating router shutdown process.", false);
-
-    SOSPFPacket departurePacket = new SOSPFPacket();
-    departurePacket.srcIP = rd.getSimulatedIP();
-    departurePacket.sospfType = 1;
-    departurePacket.lsaArray = new Vector<LSA>(lsd.getAllLSAs());
-    //
-
-    // Remove the link descriptions from LSD for all connected neighbors before sending departure packets
-    synchronized (portsLock) {
-      for (Link link : ports) {
-        if (link != null && link.router2 != null) {
-          // Remove the link description from the LSD
-          lsd.removeLinkDescriptions(link.router2.getSimulatedIP());
-
-          // Then, attempt to notify the neighbor of departure
-          try {
-            SocketClient client = new SocketClient(link.router2.getProcessIP(), link.router2.getProcessPort());
-            client.send(departurePacket);
-            client.close();
-          } catch (Exception e) {
-            Console.log("Failed to send departure packet to " + link.router2.getSimulatedIP(), false);
-          }
-        }
-      }
-    }
-
-    // Clear the ports to signify no longer connected to any neighbors
-    for (int i = 0; i < ports.length; i++) {
-      ports[i] = null;
-    }
-    // Terminate the packet listener and interrupt all channel threads
-    packetListener.terminate();
-
-    Console.log("Router has been successfully shut down.", false);
-    System.exit(0);
-  }
-   */
   private void processQuit() {
     // remove the link descriptions from LSD for all connected neighbors
     synchronized (portsLock) {
@@ -418,7 +379,6 @@ public class Router implements Node {
       for (Thread channel : ChannelThreads) {
         channel.interrupt();
       }
-
     }
   }
 }
