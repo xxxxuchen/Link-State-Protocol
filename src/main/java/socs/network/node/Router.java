@@ -266,6 +266,9 @@ public class Router implements Node {
    * disconnect with all neighbors and quit the program
    */
   private void processQuit() {
+    // terminate the packet listener and all channel threads
+    packetListener.terminate();
+
     // remove the link descriptions from LSD for all connected neighbors
     synchronized (portsLock) {
       for (Link link : ports) {
@@ -276,8 +279,7 @@ public class Router implements Node {
     }
     // send the LSAUpdate packet to all neighbors after the lsd has updated all the link changes
     broadcastPacket(PacketFactory.LSAUPDATE);
-    // terminate the packet listener and all channel threads
-    packetListener.terminate();
+
     // remove all the attached links
     for (int i = 0; i < ports.length; i++) {
       removeAttachedLink(i);
@@ -352,6 +354,7 @@ public class Router implements Node {
         // create a new thread to handle the incoming message
         Thread channel = new Thread(() -> {
           while (!Thread.currentThread().isInterrupted()) {
+            if (clientSocket == null) return;
             SOSPFPacket packet = clientSocket.receive();
             if (packet != null) {
               // call the corresponding handler callback
