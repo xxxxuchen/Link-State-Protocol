@@ -5,6 +5,17 @@
 1. Compilation: `mvn compile assembly:single`
 2. Initializing a router (adjust the router config file at the end accordingly): `java -cp target/COMP535-1.0-SNAPSHOT-jar-with-dependencies.jar socs.network.Main conf/router[1-7].conf`
 
+## Some Examples:
+
+- Attach router1 to router2:
+  - type `attach 127.0.0.1 3002 192.168.1.2` on router1's console
+- Attach router2 to router3:
+  - type `attach 127.0.0.1 3003 192.168.1.3` on router2's console
+- Connect router1 to router2:
+  - type `connect 127.0.0.1 3002 192.168.1.2` on router1's console
+- Disconnect router2 from router1:
+  - type `disconnect 192.168.1.2` on router1's console
+
 ## Testing (Using Handout Example)
 
 In order to test the layout provided within the handout, it is recommended to have have **7 open terminals** since we will need to configure **7 different routers**.
@@ -150,14 +161,3 @@ processQuit method in the Router class handles the proper shutdown of the router
 
 - **Terminate the Program**
   - Calls `System.exit(0)` to terminate the entire program, ensuring that all remaining threads and processes are cleanly stopped.
-
-## Some Examples:
-
-- Attach router1 to router2:
-  - type `attach 127.0.0.1 3002 192.168.1.2` on router1's console
-- Attach router2 to router3:
-  - type `attach 127.0.0.1 3003 192.168.1.3` on router2's console
-- Connect router1 to router2:
-  - type `connect 127.0.0.1 3002 192.168.1.2` on router1's console
-- Disconnect router2 from router1:
-  - type `disconnect 192.168.1.2` on router1's console
