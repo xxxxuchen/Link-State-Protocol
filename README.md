@@ -1,7 +1,5 @@
 # Documentation : PA-3 Link State Protocol
 
-Example: [Demo](/Demo/PA3_Demo.mp4)
-
 ## How to compile and run the code
 
 1. Compilation: `mvn compile assembly:single`
